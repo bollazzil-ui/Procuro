@@ -1,0 +1,13 @@
+/* Global font and styles */
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom utility class extracted from your original index.html */
+.gradient-bg {
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent),
+              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.02), transparent);
+}
