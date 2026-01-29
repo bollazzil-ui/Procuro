@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // Import Link
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Sparkles, LogOut, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation(); // Hook to check current active page
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth(); // Get auth state
 
-  // Helper to check active state for styling
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  // Determine dashboard link based on role
+  const dashboardLink = user?.user_metadata?.role === 'PROVIDER'
+    ? '/provider-dashboard'
+    : '/sme-dashboard';
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo links to Home */}
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">P</span>
@@ -29,7 +40,27 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login" className="text-slate-600 hover:text-blue-600 font-medium">Log In</Link>
+            {user ? (
+              <div className="flex items-center gap-4">
+                 <Link
+                  to={dashboardLink}
+                  className="flex items-center gap-2 text-slate-600 hover:text-blue-600 font-medium"
+                >
+                  <User size={18} />
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 text-slate-400 hover:text-red-500 font-medium transition-colors text-sm"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="text-slate-600 hover:text-blue-600 font-medium">Log In</Link>
+            )}
+
             <button className="bg-[#FFD700] hover:bg-[#F0C800] text-blue-900 px-5 py-2.5 rounded-full font-bold transition-all shadow-sm flex items-center gap-2">
               <Sparkles size={18} />
               Get AI Matches
@@ -44,7 +75,15 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Logic would go here, also using <Link> with onClick={() => setIsOpen(false)} */}
+      {/* Mobile Menu Logic (Condensed for brevity) */}
+      {isOpen && (
+        <div className="md:hidden bg-white border-b border-slate-100 p-4 space-y-4">
+           {/* Add links here if needed */}
+           {user && (
+             <button onClick={handleSignOut} className="w-full text-left text-red-500 font-bold">Sign Out</button>
+           )}
+        </div>
+      )}
     </nav>
   );
 };
