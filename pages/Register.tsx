@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ChevronRight, Building2, Briefcase } from 'lucide-react';
+import { Mail, Lock, ChevronRight, Building2, Briefcase, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function RegisterPage() {
@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'SME' | 'PROVIDER'>('SME');
   const [error, setError] = useState<string | null>(null);
+  const [successMode, setSuccessMode] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,24 +18,27 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      // 1. Sign up user & pass metadata
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // 1. Sign up user & pass the 'role' as metadata
+      // This metadata is caught by the Postgres Trigger we created
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            role: role, // Pass the selected role here
+            role: role,
           }
         }
       });
 
       if (authError) throw authError;
 
-      // 2. The Database Trigger handles the profile creation now.
-      // We don't need the manual 'insert' code anymore.
-
-      if (authData.user) {
-        navigate('/');
+      // 2. Handle UX based on whether email confirmation is required
+      if (data.session) {
+        // User is logged in immediately (Email confirmation disabled)
+        navigate(role === 'SME' ? '/sme-dashboard' : '/provider-dashboard');
+      } else if (data.user) {
+        // User created, but waiting for email confirmation
+        setSuccessMode(true);
       }
     } catch (err: any) {
       setError(err.message);
@@ -42,6 +46,26 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (successMode) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center pt-24 pb-20 px-4 bg-slate-50">
+        <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl p-10 border border-slate-100 text-center">
+          <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Check your inbox</h2>
+          <p className="text-slate-500 mb-6">
+            We've sent a confirmation link to <strong>{email}</strong>. <br/>
+            Please click the link to activate your {role} account.
+          </p>
+          <Link to="/login" className="text-blue-600 font-bold hover:underline">
+            Back to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center pt-24 pb-20 px-4 bg-slate-50">
@@ -64,7 +88,7 @@ export default function RegisterPage() {
               type="button"
               onClick={() => setRole('SME')}
               className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
-                role === 'SME' ? 'bg-blue-50 border-blue-600 text-blue-900' : 'bg-white border-slate-200 text-slate-500'
+                role === 'SME' ? 'bg-blue-50 border-blue-600 text-blue-900 ring-2 ring-blue-600 ring-offset-2' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
               }`}
             >
               <Building2 size={24} />
@@ -74,7 +98,7 @@ export default function RegisterPage() {
               type="button"
               onClick={() => setRole('PROVIDER')}
               className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
-                role === 'PROVIDER' ? 'bg-blue-50 border-blue-600 text-blue-900' : 'bg-white border-slate-200 text-slate-500'
+                role === 'PROVIDER' ? 'bg-blue-50 border-blue-600 text-blue-900 ring-2 ring-blue-600 ring-offset-2' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
               }`}
             >
               <Briefcase size={24} />
@@ -113,7 +137,7 @@ export default function RegisterPage() {
           </div>
 
           <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-            {loading ? 'Creating...' : 'Register'} <ChevronRight size={18} />
+            {loading ? 'Creating Account...' : 'Register'} <ChevronRight size={18} />
           </button>
         </form>
 
