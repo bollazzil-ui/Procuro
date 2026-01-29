@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-// 1. Import the demo data script !!!!!!!!!!!!!!!!!!!!!!!!!!!
-import { seedDemoAccounts } from '../lib/demoData';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -99,18 +97,6 @@ export default function LoginPage() {
             {/* Ensure this points to your new Register page */}
             <Link to="/register" className="text-blue-600 font-bold hover:underline mt-1">Register your Business</Link>
           </p>
-
-          {/* 2. Your Demo Button Added Here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
-          <button
-            onClick={async () => {
-              const res = await seedDemoAccounts();
-              alert(res.join('\n'));
-            }}
-            className="mt-6 text-xs text-slate-400 hover:text-blue-600 underline w-full text-center block"
-          >
-            (Dev Only) Create Demo Accounts
-          </button>
-
         </div>
       </div>
     </div>
