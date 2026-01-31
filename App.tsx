@@ -30,6 +30,7 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout />}>
+          {/* ... (keep existing routes) ... */}
           <Route index element={<Home />} />
           <Route path="sme" element={<SME />} />
           <Route path="provider" element={<Provider />} />
@@ -37,7 +38,6 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
 
-          {/* Protected Routes wrapped in DashboardLayout */}
           <Route
             path="sme-dashboard"
             element={
@@ -61,7 +61,8 @@ export default function App() {
           <Route
             path="match-search"
             element={
-              <ProtectedRoute>
+              // Added allowedRole="SME" here
+              <ProtectedRoute allowedRole="SME">
                 <DashboardLayout>
                   <SMEMatchSearch />
                 </DashboardLayout>

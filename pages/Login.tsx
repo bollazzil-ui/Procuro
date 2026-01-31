@@ -16,12 +16,24 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Capture 'data' to access user metadata
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      navigate('/');
+
+      // Check role and redirect accordingly
+      const role = data.user?.user_metadata?.role;
+
+      if (role === 'SME') {
+        navigate('/sme-dashboard');
+      } else if (role === 'PROVIDER') {
+        navigate('/provider-dashboard');
+      } else {
+        navigate('/'); // Fallback if no role is found
+      }
+
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -94,7 +106,6 @@ export default function LoginPage() {
         <div className="mt-8 pt-8 border-t border-slate-100">
           <p className="text-center text-sm text-slate-500">
             Not a member yet? <br />
-            {/* Ensure this points to your new Register page */}
             <Link to="/register" className="text-blue-600 font-bold hover:underline mt-1">Register your Business</Link>
           </p>
         </div>

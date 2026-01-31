@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Search, Settings,SJ, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
@@ -10,11 +10,18 @@ const Sidebar = () => {
   // Determine dashboard path based on role
   const dashboardPath = role === 'PROVIDER' ? '/provider-dashboard' : '/sme-dashboard';
 
+  // Base items available to everyone (or just Dashboard + Settings)
   const navItems = [
     { name: 'Dashboard', path: dashboardPath, icon: <LayoutDashboard size={20} /> },
-    { name: 'Match Search', path: '/match-search', icon: <Search size={20} /> },
-    { name: 'Settings', path: '/settings', icon: <Settings size={20} /> }, // Optional placeholder
   ];
+
+  // Conditionally add Match Search for SMEs
+  if (role === 'SME') {
+    navItems.push({ name: 'Match Search', path: '/match-search', icon: <Search size={20} /> });
+  }
+
+  // Add settings at the end
+  navItems.push({ name: 'Settings', path: '/settings', icon: <Settings size={20} /> });
 
   return (
     <aside className="fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white border-r border-slate-100 overflow-y-auto z-40 hidden md:flex flex-col">
