@@ -4,7 +4,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute'; // Import this
 
 import Layout from './components/Layout';
-import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
+import BrowseCategories from './pages/BrowseCategories';
 import SME from './pages/SME';
 import Provider from './pages/Provider';
 import About from './pages/About';
@@ -27,7 +28,15 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+          <Route index element={<LandingPage />} />
+          <Route
+            path="browse"
+            element={
+              <ProtectedRoute allowedRole="SME">
+                <BrowseCategories />
+              </ProtectedRoute>
+            }
+          />
           <Route path="sme" element={<SME />} />
           <Route path="provider" element={<Provider />} />
           <Route path="about" element={<About />} />

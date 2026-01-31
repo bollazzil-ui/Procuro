@@ -33,7 +33,9 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className={`font-medium transition-colors ${isActive('/') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Browse Categories</Link>
+            {user?.user_metadata?.role === 'SME' && (
+              <Link to="/browse" className={`font-medium transition-colors ${isActive('/browse') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Browse Categories</Link>
+            )}
             <Link to="/sme" className={`font-medium transition-colors ${isActive('/sme') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>For SMEs</Link>
             <Link to="/provider" className={`font-medium transition-colors ${isActive('/provider') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>For Providers</Link>
             <Link to="/about" className={`font-medium transition-colors ${isActive('/about') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>About Us</Link>
