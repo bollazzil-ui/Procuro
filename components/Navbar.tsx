@@ -32,8 +32,15 @@ const Navbar = () => {
             <span className="text-2xl font-bold text-blue-900 tracking-tight">Procuro</span>
           </Link>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className={`font-medium transition-colors ${isActive('/') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Browse Categories</Link>
+
+            {/* CONDITIONAL LINK: Only visible to logged-in SMEs */}
+            {user?.user_metadata?.role === 'SME' && (
+               <Link to="/sme-browse" className={`font-medium transition-colors ${isActive('/sme-browse') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Match Search</Link>
+            )}
+
             <Link to="/sme" className={`font-medium transition-colors ${isActive('/sme') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>For SMEs</Link>
             <Link to="/provider" className={`font-medium transition-colors ${isActive('/provider') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>For Providers</Link>
             <Link to="/about" className={`font-medium transition-colors ${isActive('/about') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>About Us</Link>
@@ -75,12 +82,22 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Logic (Condensed for brevity) */}
+      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-white border-b border-slate-100 p-4 space-y-4">
-           {/* Add links here if needed */}
+           <Link to="/" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>Browse Categories</Link>
+
+           {/* CONDITIONAL MOBILE LINK */}
+           {user?.user_metadata?.role === 'SME' && (
+              <Link to="/sme-browse" className="block py-2 text-slate-600 font-medium text-blue-600" onClick={() => setIsOpen(false)}>Match Search</Link>
+           )}
+
+           <Link to="/sme" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>For SMEs</Link>
+           <Link to="/provider" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>For Providers</Link>
+           <Link to="/about" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>About Us</Link>
+
            {user && (
-             <button onClick={handleSignOut} className="w-full text-left text-red-500 font-bold">Sign Out</button>
+             <button onClick={handleSignOut} className="w-full text-left text-red-500 font-bold py-2">Sign Out</button>
            )}
         </div>
       )}

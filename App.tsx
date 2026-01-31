@@ -1,17 +1,20 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute'; // Import this
+import ProtectedRoute from './components/ProtectedRoute';
 
 import Layout from './components/Layout';
+import DashboardLayout from './components/DashboardLayout'; // Import DashboardLayout
+
 import Home from './pages/Home';
 import SME from './pages/SME';
 import Provider from './pages/Provider';
 import About from './pages/About';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import SMEDashboard from './pages/SMEDashboard'; // Import this
-import ProviderDashboard from './pages/ProviderDashboard'; // Import this
+import SMEDashboard from './pages/SMEDashboard';
+import SMEMatchSearch from './pages/SMEMatchSearch';
+import ProviderDashboard from './pages/ProviderDashboard';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -34,12 +37,14 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
 
-          {/* Protected Routes */}
+          {/* Protected Routes wrapped in DashboardLayout */}
           <Route
             path="sme-dashboard"
             element={
               <ProtectedRoute allowedRole="SME">
-                <SMEDashboard />
+                <DashboardLayout>
+                  <SMEDashboard />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />
@@ -47,7 +52,19 @@ export default function App() {
             path="provider-dashboard"
             element={
               <ProtectedRoute allowedRole="PROVIDER">
-                <ProviderDashboard />
+                <DashboardLayout>
+                  <ProviderDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="match-search"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <SMEMatchSearch />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />
