@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, Zap, CheckCircle2, ChevronRight, Globe } from 'lucide-react';
+import { Search, Users, Zap, CheckCircle2, ChevronRight, Globe, ShieldCheck, Sparkles } from 'lucide-react';
 import IndustryGrid from '../components/IndustryGrid'; // Import shared component
 import Pricing from '../components/Pricing';         // Import shared component
 import Team from '../components/Team';               // Import shared component
@@ -130,56 +130,124 @@ export default function Home() {
     <>
       <Hero />
 
-      {/* Search Results Preview Section */}
-      <section className="py-10 px-4 -mt-10 mb-20 animate-fade-in">
-        <div className="max-w-4xl mx-auto">
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 md:p-8">
-              <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-bold text-blue-950 flex items-center gap-2">
-                    <Users size={18} /> Top Recommendations
-                  </h3>
-                  <span className="text-xs font-bold text-blue-600 px-3 py-1 bg-blue-50 rounded-full border border-blue-100">
-                    Results found: 4
-                  </span>
-              </div>
+      {/* Solution Showcase Section */}
+      <section className="py-10 px-4 -mt-10 mb-20 animate-fade-in relative z-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div className="grid lg:grid-cols-2 gap-0">
 
-              <div className="space-y-4">
+              {/* Left: Value Proposition List */}
+              <div className="p-8 md:p-12 flex flex-col justify-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider mb-6 w-fit">
+                  <Sparkles size={14} />
+                  The Procuro Advantage
+                </div>
+                <h2 className="text-3xl font-bold text-blue-950 mb-6">
+                  Intelligent Matching. <br/>
+                  <span className="text-blue-600">Zero Guesswork.</span>
+                </h2>
+                <p className="text-slate-600 mb-8 leading-relaxed">
+                  We replace manual directories with an active AI engine that understands your business context.
+                </p>
+
+                <div className="space-y-6">
                   {[
-                    { name: "SwissSolutions IT", score: "98%", category: "ERP Specialists", gold: true },
-                    { name: "Alpine CRM Experts", score: "94%", category: "Cloud Sales Tools", gold: false }
+                    {
+                      icon: <Zap className="text-amber-500" size={24} />,
+                      title: "Instant Precision",
+                      desc: "Our AI analyzes 50+ data points to match you with providers who fit your budget, tech stack, and industry."
+                    },
+                    {
+                      icon: <ShieldCheck className="text-green-500" size={24} />,
+                      title: "Verified Trust",
+                      desc: "Every provider is manually vetted for Swiss commercial registry status and financial stability."
+                    },
+                    {
+                      icon: <Users className="text-blue-500" size={24} />,
+                      title: "Direct Connection",
+                      desc: "Skip the cold calls. Get introduced directly to decision-makers who are ready to work."
+                    }
                   ].map((item, i) => (
-                    <div key={i} className="group p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center font-bold text-slate-400">
-                            LOGO
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-blue-950 group-hover:text-blue-600 transition-colors">{item.name}</h4>
-                            <p className="text-sm text-slate-500">{item.category}</p>
-                          </div>
+                    <div key={i} className="flex gap-4 items-start group">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors border border-slate-100">
+                        {item.icon}
                       </div>
-                      <div className="flex items-center gap-3">
-                          <div className="flex flex-col items-end">
-                            <span className="text-[10px] font-bold uppercase text-slate-400">Match Score</span>
-                            <span className="text-lg font-black text-blue-600 leading-none">{item.score}</span>
-                          </div>
-                          {item.gold && (
-                            <div className="px-2 py-1 bg-[#FFD700] text-blue-900 text-[10px] font-black rounded uppercase shadow-sm">
-                              AI Match
-                            </div>
-                          )}
-                          <ChevronRight className="text-slate-300 group-hover:text-blue-400 transition-colors" size={20} />
+                      <div>
+                        <h4 className="font-bold text-blue-950 text-lg">{item.title}</h4>
+                        <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
                       </div>
                     </div>
                   ))}
+                </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-slate-50 text-center">
-                  <Link to="/sme" className="text-blue-600 font-bold text-sm hover:underline flex items-center gap-1 mx-auto justify-center">
-                    View All AI-Ranked Providers <ChevronRight size={16} />
-                  </Link>
+              {/* Right: "Picture Example" (UI Mockup) */}
+              <div className="bg-slate-50 p-8 md:p-12 flex items-center justify-center relative overflow-hidden">
+                  {/* Background Decor */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-200/20 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
+
+                  {/* The Main UI Card (Simulating an App Screenshot) */}
+                  <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/60 p-6 z-10 transform transition-transform hover:scale-[1.02] duration-500">
+                    {/* Floating Badge */}
+                    <div className="absolute -top-4 -right-4 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 font-bold text-sm animate-bounce">
+                      <CheckCircle2 size={16} /> Best Match
+                    </div>
+
+                    {/* Card Header */}
+                    <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-6">
+                       <div className="w-16 h-16 bg-blue-950 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                         SSI
+                       </div>
+                       <div>
+                         <h3 className="font-bold text-blue-950 text-lg">SwissSolutions IT</h3>
+                         <div className="flex items-center gap-2 text-sm text-slate-500">
+                           <span>Zürich, CH</span>
+                           <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                           <span>50-200 Employees</span>
+                         </div>
+                       </div>
+                    </div>
+
+                    {/* Match Criteria Visualization */}
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between text-sm font-semibold text-slate-600 mb-1">
+                        <span>Tech Stack Fit</span>
+                        <span className="text-blue-600">98%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="bg-blue-600 w-[98%] h-full rounded-full"></div>
+                      </div>
+
+                      <div className="flex justify-between text-sm font-semibold text-slate-600 mb-1">
+                        <span>Industry Experience</span>
+                        <span className="text-blue-600">Perfect</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="bg-blue-600 w-full h-full rounded-full"></div>
+                      </div>
+
+                      <div className="flex justify-between text-sm font-semibold text-slate-600 mb-1">
+                        <span>Budget Alignment</span>
+                        <span className="text-green-600">Within Range</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="bg-green-500 w-[85%] h-full rounded-full"></div>
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <button className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+                      View Full Analysis <ChevronRight size={18} />
+                    </button>
+                  </div>
+
+                  {/* Background Stacked Card Effect */}
+                  <div className="absolute w-full max-w-md bg-white/50 rounded-2xl border border-slate-200 h-full top-4 left-4 -z-10 scale-95"></div>
               </div>
+
             </div>
+          </div>
         </div>
       </section>
 
