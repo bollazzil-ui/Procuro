@@ -14,7 +14,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SMEDashboard from './pages/SMEDashboard';
 import SMEMatchSearch from './pages/SMEMatchSearch';
-import ProviderDashboard from './pages/ProviderDashboard';
+import ProviderProfile from './pages/ProviderProfile';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -53,7 +53,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="PROVIDER">
                 <DashboardLayout>
-                  <ProviderDashboard />
+                  <ProviderProfile />
                 </DashboardLayout>
               </ProtectedRoute>
             }

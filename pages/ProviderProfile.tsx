@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { BarChart3, Users, Zap, Settings } from 'lucide-react';
 
-export default function ProviderDashboard() {
+export default function ProviderProfile() {
   const { user } = useAuth();
 
   return (
