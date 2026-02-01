@@ -1,11 +1,11 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 
-interface DashboardLayoutProps {
+interface ProfileLayoutProps {
   children: React.ReactNode;
 }
 
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+const ProfileLayout = ({ children }: ProfileLayoutProps) => {
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Sidebar Component */}
@@ -19,4 +19,4 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   );
 };
 
-export default DashboardLayout;
+export default ProfileLayout;

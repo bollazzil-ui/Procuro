@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Search, Heart, Settings, Bell } from 'lucide-react';
 
-export default function SMEDashboard() {
+export default function SMEProfile() {
   const { user } = useAuth();
 
   return (

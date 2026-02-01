@@ -4,7 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import Layout from './components/Layout';
-import DashboardLayout from './components/DashboardLayout'; // Import DashboardLayout
+import ProfileLayout from './components/ProfileLayout'; // Import ProfileLayout
 
 import Home from './pages/Home';
 import SME from './pages/SME';
@@ -12,7 +12,7 @@ import Provider from './pages/Provider';
 import About from './pages/About';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import SMEDashboard from './pages/SMEDashboard';
+import SMEProfile from './pages/SMEProfile';
 import SMEMatchSearch from './pages/SMEMatchSearch';
 import ProviderProfile from './pages/ProviderProfile';
 
@@ -42,9 +42,9 @@ export default function App() {
             path="sme-dashboard"
             element={
               <ProtectedRoute allowedRole="SME">
-                <DashboardLayout>
-                  <SMEDashboard />
-                </DashboardLayout>
+                <ProfileLayout>
+                  <SMEProfile/>
+                </ProfileLayout>
               </ProtectedRoute>
             }
           />
@@ -52,9 +52,9 @@ export default function App() {
             path="provider-dashboard"
             element={
               <ProtectedRoute allowedRole="PROVIDER">
-                <DashboardLayout>
+                <ProfileLayout>
                   <ProviderProfile />
-                </DashboardLayout>
+                </ProfileLayout>
               </ProtectedRoute>
             }
           />
@@ -63,9 +63,9 @@ export default function App() {
             element={
               // Added allowedRole="SME" here
               <ProtectedRoute allowedRole="SME">
-                <DashboardLayout>
+                <ProfileLayout>
                   <SMEMatchSearch />
-                </DashboardLayout>
+                </ProfileLayout>
               </ProtectedRoute>
             }
           />
