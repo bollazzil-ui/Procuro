@@ -1,10 +1,20 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Linkedin, Mail, Users } from 'lucide-react';
 
 const Footer = () => {
+  const location = useLocation();
+
+  // Define the routes where the Sidebar is active and the Footer needs a margin
+  const isDashboardRoute =
+    location.pathname.includes('dashboard') ||
+    location.pathname === '/match-search' ||
+    location.pathname === '/settings';
+
   return (
-    <footer className="bg-white py-20 px-4 border-t border-slate-100">
+    <footer className={`bg-white py-20 px-4 border-t border-slate-100 transition-all duration-300 ${
+      isDashboardRoute ? 'md:ml-64' : ''
+    }`}>
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-1">
           <Link to="/" className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
