@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Package, Search, Loader2, X, Save } from 'lucide-react';
+import { Plus, Package, Search, Loader2, X, Save, AlertCircle } from 'lucide-react';
 
+// Interface matching the public.products table
 interface Product {
   id: string;
+  created_at: string;
+  profile_id: string;
   name: string;
-  description: string;
-  price: string;
-  category: string;
+  description: string | null;
+  price: string | null;
+  category: string | null;
 }
+
+const INITIAL_FORM_STATE = {
+  name: '',
+  description: '',
+  price: '',
+  category: ''
+};
 
 export default function ProviderProducts() {
   const { user } = useAuth();
@@ -17,22 +27,21 @@ export default function ProviderProducts() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: ''
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
   useEffect(() => {
-    fetchProducts();
+    if (user) {
+      fetchProducts();
+    }
   }, [user]);
 
   const fetchProducts = async () => {
     try {
       if (!user) return;
+      // Fetch products linked to the current user (auth.users(id))
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -41,8 +50,8 @@ export default function ProviderProducts() {
 
       if (error) throw error;
       setProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+    } catch (err) {
+      console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
     }
@@ -50,31 +59,42 @@ export default function ProviderProducts() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error when user types
+    if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     setSubmitting(true);
+    setError(null);
+
     try {
-      if (!user) return;
+      // Insert product into Supabase
+      // Note: profile_id references auth.users(id) per schema
+      const { error: insertError } = await supabase
+        .from('products')
+        .insert({
+          profile_id: user.id,
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          category: formData.category
+        });
 
-      const { error } = await supabase.from('products').insert({
-        profile_id: user.id,
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        category: formData.category
-      });
+      if (insertError) throw insertError;
 
-      if (error) throw error;
-
-      // Reset and refresh
-      setFormData({ name: '', description: '',SW: '', category: '', price: '' });
+      // Success: Reset form and UI
+      setFormData(INITIAL_FORM_STATE);
       setIsAdding(false);
-      fetchProducts();
-    } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Failed to add product');
+
+      // Refresh the list to show the new item
+      await fetchProducts();
+
+    } catch (err: any) {
+      console.error('Error adding product:', err);
+      setError(err.message || 'Failed to add product. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -112,6 +132,13 @@ export default function ProviderProducts() {
                 <X size={24} />
               </button>
             </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
+                <AlertCircle size={20} />
+                <span className="text-sm font-medium">{error}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
