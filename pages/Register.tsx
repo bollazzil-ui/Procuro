@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ChevronRight, Building2, Briefcase, CheckCircle, User, MapPin, Phone, FileText } from 'lucide-react';
+import { Mail, Lock, ChevronRight, Building2, Briefcase, CheckCircle, User, MapPin, Phone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function RegisterPage() {
@@ -39,14 +39,13 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      // 1. Sign up user & pass the 'role' as metadata (Keeps existing trigger logic working)
+      // 1. Sign up user & pass the 'role' as metadata
       const { data, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             role: role,
-            // We also pass these in metadata as a backup in case email confirmation prevents immediate DB writes
             first_name: formData.firstName,
             last_name: formData.lastName,
             company_name: formData.companyName
@@ -71,8 +70,8 @@ export default function RegisterPage() {
             postal_code: formData.postalCode,
             city: formData.city,
             country: formData.country,
-            employee_count: formData.employeeCount ? parseInt(formData.employeeCount) : null,
-            workstation_count: formData.workstationCount ? parseInt(formData.workstationCount) : null
+            employee_count: parseInt(formData.employeeCount),
+            workstation_count: parseInt(formData.workstationCount)
           })
           .select()
           .single();
@@ -95,11 +94,9 @@ export default function RegisterPage() {
 
         if (contactError) throw contactError;
 
-        // Success - Navigate
         navigate(role === 'SME' ? '/sme-dashboard' : '/provider-dashboard');
 
       } else if (data.user) {
-        // User created, but waiting for email confirmation (RLS may prevent inserts here, handled by metadata or user returning later)
         setSuccessMode(true);
       }
 
@@ -146,7 +143,6 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-8">
-
           {/* Section 0: Role Selection */}
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -178,7 +174,7 @@ export default function RegisterPage() {
               <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Login Credentials</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email *</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
@@ -193,13 +189,14 @@ export default function RegisterPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Password</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Password *</label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                       name="password"
                       type="password"
                       required
+                      minLength={6}
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="••••••••"
@@ -213,23 +210,28 @@ export default function RegisterPage() {
             {/* Section 2: Contact Person */}
             <div className="md:col-span-2 space-y-4">
                <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Contact Person</h3>
+               {/* ADJUSTMENT:
+                  - Changed grid distribution to [2, 2, 2] on desktop (md:col-span-2 for all 3 inputs).
+                  - Added whitespace-nowrap to Salutation label to prevent wrapping.
+               */}
                <div className="grid grid-cols-6 gap-4">
-                  <div className="col-span-2 md:col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Salutation</label>
+                  <div className="col-span-2 md:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 whitespace-nowrap">Salutation *</label>
                     <select
                       name="salutation"
                       value={formData.salutation}
                       onChange={handleChange}
+                      required
                       className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                     >
-                      <option>Mr.</option>
-                      <option>Ms.</option>
-                      <option>Mrs.</option>
-                      <option>Dr.</option>
+                      <option value="Mr.">Mr.</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Dr.">Dr.</option>
                     </select>
                   </div>
                   <div className="col-span-4 md:col-span-2 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">First Name</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">First Name *</label>
                     <input
                       name="firstName"
                       required
@@ -238,8 +240,8 @@ export default function RegisterPage() {
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
-                  <div className="col-span-6 md:col-span-3 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Last Name</label>
+                  <div className="col-span-6 md:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Last Name *</label>
                     <input
                       name="lastName"
                       required
@@ -249,11 +251,12 @@ export default function RegisterPage() {
                     />
                   </div>
                   <div className="col-span-6 md:col-span-3 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Job Function</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Job Function *</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input
                         name="jobFunction"
+                        required
                         value={formData.jobFunction}
                         onChange={handleChange}
                         placeholder="e.g. CTO"
@@ -262,11 +265,13 @@ export default function RegisterPage() {
                     </div>
                   </div>
                   <div className="col-span-6 md:col-span-3 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Phone</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Phone *</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input
                         name="phone"
+                        required
+                        type="tel"
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="+41 79 123 45 67"
@@ -282,7 +287,7 @@ export default function RegisterPage() {
                <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Company Details</h3>
                <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2 md:col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Company Name</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Company Name *</label>
                     <div className="relative">
                       <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input
@@ -295,9 +300,10 @@ export default function RegisterPage() {
                     </div>
                   </div>
                   <div className="col-span-2 md:col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Legal Form</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Legal Form *</label>
                     <input
                       name="legalForm"
+                      required
                       value={formData.legalForm}
                       onChange={handleChange}
                       placeholder="AG, GmbH..."
@@ -306,7 +312,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="col-span-2 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Address</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Address *</label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input
@@ -321,7 +327,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Postal Code</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Postal Code *</label>
                     <input
                       name="postalCode"
                       required
@@ -331,7 +337,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   <div className="col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">City</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">City *</label>
                     <input
                       name="city"
                       required
@@ -342,10 +348,12 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Employees</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Employees *</label>
                     <input
                       name="employeeCount"
                       type="number"
+                      required
+                      min="1"
                       value={formData.employeeCount}
                       onChange={handleChange}
                       placeholder="Count"
@@ -353,10 +361,12 @@ export default function RegisterPage() {
                     />
                   </div>
                   <div className="col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Workstations</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Workstations *</label>
                     <input
                       name="workstationCount"
                       type="number"
+                      required
+                      min="1"
                       value={formData.workstationCount}
                       onChange={handleChange}
                       placeholder="Count"
