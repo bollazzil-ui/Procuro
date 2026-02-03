@@ -2,9 +2,8 @@ import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-
 import Layout from './components/Layout';
-import ProfileLayout from './components/ProfileLayout'; // Import ProfileLayout
+import ProfileLayout from './components/ProfileLayout';
 
 import Home from './pages/Home';
 import SME from './pages/SME';
@@ -15,6 +14,7 @@ import Register from './pages/Register';
 import SMEProfile from './pages/SMEProfile';
 import SMEMatchSearch from './pages/SMEMatchSearch';
 import ProviderProfile from './pages/ProviderProfile';
+import ProviderProducts from './pages/ProviderProducts';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -65,6 +65,16 @@ export default function App() {
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
                   <SMEMatchSearch />
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="provider-products"
+            element={
+              <ProtectedRoute allowedRole="PROVIDER">
+                <ProfileLayout>
+                  <ProviderProducts />
                 </ProfileLayout>
               </ProtectedRoute>
             }
