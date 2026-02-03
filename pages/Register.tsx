@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ChevronRight, Building2, Briefcase, CheckCircle } from 'lucide-react';
+import { Mail, Lock, ChevronRight, Building2, Briefcase, CheckCircle, User, MapPin, Phone, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState<'SME' | 'PROVIDER'>('SME');
   const [error, setError] = useState<string | null>(null);
   const [successMode, setSuccessMode] = useState(false);
+
+  // Consolidated form state
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    salutation: 'Mr.',
+    firstName: '',
+    lastName: '',
+    jobFunction: '',
+    phone: '',
+    companyName: '',
+    legalForm: '',
+    address: '',
+    postalCode: '',
+    city: '',
+    country: 'Switzerland',
+    employeeCount: '',
+    workstationCount: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,30 +39,73 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      // 1. Sign up user & pass the 'role' as metadata
-      // This metadata is caught by the Postgres Trigger we created
+      // 1. Sign up user & pass the 'role' as metadata (Keeps existing trigger logic working)
       const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
+        email: formData.email,
+        password: formData.password,
         options: {
           data: {
             role: role,
+            // We also pass these in metadata as a backup in case email confirmation prevents immediate DB writes
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            company_name: formData.companyName
           }
         }
       });
 
       if (authError) throw authError;
 
-      // 2. Handle UX based on whether email confirmation is required
-      if (data.session) {
-        // User is logged in immediately (Email confirmation disabled)
+      // 2. If we have a session (user is logged in), insert the extended data
+      if (data.session && data.user) {
+        const userId = data.user.id;
+
+        // A. Insert Company
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
+          .insert({
+            profile_id: userId,
+            company_name: formData.companyName,
+            legal_form: formData.legalForm,
+            address: formData.address,
+            postal_code: formData.postalCode,
+            city: formData.city,
+            country: formData.country,
+            employee_count: formData.employeeCount ? parseInt(formData.employeeCount) : null,
+            workstation_count: formData.workstationCount ? parseInt(formData.workstationCount) : null
+          })
+          .select()
+          .single();
+
+        if (companyError) throw companyError;
+
+        // B. Insert Contact
+        const { error: contactError } = await supabase
+          .from('contacts')
+          .insert({
+            profile_id: userId,
+            company_id: companyData.id,
+            email: formData.email,
+            salutation: formData.salutation,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            job_function: formData.jobFunction,
+            phone_number: formData.phone
+          });
+
+        if (contactError) throw contactError;
+
+        // Success - Navigate
         navigate(role === 'SME' ? '/sme-dashboard' : '/provider-dashboard');
+
       } else if (data.user) {
-        // User created, but waiting for email confirmation
+        // User created, but waiting for email confirmation (RLS may prevent inserts here, handled by metadata or user returning later)
         setSuccessMode(true);
       }
+
     } catch (err: any) {
-      setError(err.message);
+      console.error(err);
+      setError(err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -56,7 +120,7 @@ export default function RegisterPage() {
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Check your inbox</h2>
           <p className="text-slate-500 mb-6">
-            We've sent a confirmation link to <strong>{email}</strong>. <br/>
+            We've sent a confirmation link to <strong>{formData.email}</strong>. <br/>
             Please click the link to activate your {role} account.
           </p>
           <Link to="/login" className="text-blue-600 font-bold hover:underline">
@@ -69,21 +133,22 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center pt-24 pb-20 px-4 bg-slate-50">
-      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-10 border border-slate-100">
+      <div className="max-w-2xl w-full bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-10 border border-slate-100">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
+          <h2 className="text-3xl font-bold text-slate-900">Create Account</h2>
           <p className="text-slate-500 text-sm mt-2">Join the Swiss B2B portal</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+          <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="space-y-6">
-          {/* Role Selection */}
-          <div className="grid grid-cols-2 gap-4 mb-2">
+        <form onSubmit={handleRegister} className="space-y-8">
+
+          {/* Section 0: Role Selection */}
+          <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => setRole('SME')}
@@ -106,38 +171,205 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.ch"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              />
+          <div className="grid md:grid-cols-2 gap-6">
+
+            {/* Section 1: Login Credentials */}
+            <div className="md:col-span-2 space-y-4">
+              <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Login Credentials</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="name@company.ch"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      name="password"
+                      type="password"
+                      required
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* Section 2: Contact Person */}
+            <div className="md:col-span-2 space-y-4">
+               <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Contact Person</h3>
+               <div className="grid grid-cols-6 gap-4">
+                  <div className="col-span-2 md:col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Salutation</label>
+                    <select
+                      name="salutation"
+                      value={formData.salutation}
+                      onChange={handleChange}
+                      className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                      <option>Mr.</option>
+                      <option>Ms.</option>
+                      <option>Mrs.</option>
+                      <option>Dr.</option>
+                    </select>
+                  </div>
+                  <div className="col-span-4 md:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">First Name</label>
+                    <input
+                      name="firstName"
+                      required
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                  <div className="col-span-6 md:col-span-3 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Last Name</label>
+                    <input
+                      name="lastName"
+                      required
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                  <div className="col-span-6 md:col-span-3 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Job Function</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        name="jobFunction"
+                        value={formData.jobFunction}
+                        onChange={handleChange}
+                        placeholder="e.g. CTO"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-6 md:col-span-3 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Phone</label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="+41 79 123 45 67"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Section 3: Company Details */}
+            <div className="md:col-span-2 space-y-4">
+               <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Company Details</h3>
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 md:col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Company Name</label>
+                    <div className="relative">
+                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        name="companyName"
+                        required
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-2 md:col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Legal Form</label>
+                    <input
+                      name="legalForm"
+                      value={formData.legalForm}
+                      onChange={handleChange}
+                      placeholder="AG, GmbH..."
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Address</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        name="address"
+                        required
+                        value={formData.address}
+                        onChange={handleChange}
+                        placeholder="Street & Number"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Postal Code</label>
+                    <input
+                      name="postalCode"
+                      required
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                  <div className="col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">City</label>
+                    <input
+                      name="city"
+                      required
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div className="col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Employees</label>
+                    <input
+                      name="employeeCount"
+                      type="number"
+                      value={formData.employeeCount}
+                      onChange={handleChange}
+                      placeholder="Count"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                  <div className="col-span-1 space-y-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Workstations</label>
+                    <input
+                      name="workstationCount"
+                      type="number"
+                      value={formData.workstationCount}
+                      onChange={handleChange}
+                      placeholder="Count"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+               </div>
+            </div>
+
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
-          </div>
-
-          <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-            {loading ? 'Creating Account...' : 'Register'} <ChevronRight size={18} />
+          <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-8">
+            {loading ? 'Creating Account...' : 'Register Business'} <ChevronRight size={18} />
           </button>
         </form>
 
