@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Package, Search, Loader2, X, Save, AlertCircle } from 'lucide-react';
+import { Plus, Package, Loader2, X, Save, AlertCircle } from 'lucide-react';
 
-// Interface matching the public.products table
+// Interface matching the new public.products table structure
 interface Product {
   id: string;
   created_at: string;
-  profile_id: string;
+  company_id: string; // Updated from profile_id
   name: string;
   description: string | null;
-  price: string | null;
+  price: number | null; // numeric type in SQL
   category: string | null;
+  created_by: string | null; // references auth.users(id)
 }
 
 const INITIAL_FORM_STATE = {
@@ -24,6 +25,7 @@ const INITIAL_FORM_STATE = {
 export default function ProviderProducts() {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -34,63 +36,80 @@ export default function ProviderProducts() {
 
   useEffect(() => {
     if (user) {
-      fetchProducts();
+      initializeProviderData();
     }
   }, [user]);
 
-  const fetchProducts = async () => {
+  const initializeProviderData = async () => {
     try {
-      if (!user) return;
-      // Fetch products linked to the current user (auth.users(id))
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('profile_id', user.id)
-        .order('created_at', { ascending: false });
+      setLoading(true);
+      setError(null);
 
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (err) {
-      console.error('Error fetching products:', err);
+      // 1. Fetch the company linked to the current profile
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('profile_id', user?.id)
+        .single();
+
+      if (companyError) throw companyError;
+
+      if (companyData) {
+        setCompanyId(companyData.id);
+        // 2. Fetch products for this specific company
+        await fetchProducts(companyData.id);
+      } else {
+        setError("Company profile not found. Please complete your registration.");
+      }
+    } catch (err: any) {
+      console.error('Error initializing provider data:', err);
+      setError(err.message || 'Failed to load company data.');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchProducts = async (cId: string) => {
+    const { data, error: fetchError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('company_id', cId)
+      .order('created_at', { ascending: false });
+
+    if (fetchError) throw fetchError;
+    setProducts(data || []);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // Clear error when user types
     if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !companyId) return;
 
     setSubmitting(true);
     setError(null);
 
     try {
-      // Insert product into Supabase
-      // Note: profile_id references auth.users(id) per schema
+      // Insert product using company_id and created_by as per new schema
       const { error: insertError } = await supabase
         .from('products')
         .insert({
-          profile_id: user.id,
+          company_id: companyId,
           name: formData.name,
           description: formData.description,
-          price: formData.price,
-          category: formData.category
+          price: parseFloat(formData.price), // Ensure numeric format
+          category: formData.category,
+          created_by: user.id
         });
 
       if (insertError) throw insertError;
 
-      // Success: Reset form and UI
       setFormData(INITIAL_FORM_STATE);
       setIsAdding(false);
-
-      // Refresh the list to show the new item
-      await fetchProducts();
+      await fetchProducts(companyId);
 
     } catch (err: any) {
       console.error('Error adding product:', err);
@@ -111,9 +130,9 @@ export default function ProviderProducts() {
             <h1 className="text-3xl md:text-4xl font-black text-blue-950 mt-2">
               My Products
             </h1>
-            <p className="text-slate-500 mt-2">Manage the services and software you offer to SMEs.</p>
+            <p className="text-slate-500 mt-2">Manage the services and software your company offers to SMEs.</p>
           </div>
-          {!isAdding && (
+          {!isAdding && companyId && (
             <button
               onClick={() => setIsAdding(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2"
@@ -171,13 +190,15 @@ export default function ProviderProducts() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Pricing (CHF) *</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Price (CHF) *</label>
                   <input
                     name="price"
+                    type="number"
+                    step="0.01"
                     required
                     value={formData.price}
                     onChange={handleInputChange}
-                    placeholder="e.g. 150 / month"
+                    placeholder="e.g. 1200.00"
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
@@ -228,12 +249,16 @@ export default function ProviderProducts() {
             <p className="text-slate-500 mt-2 mb-6 max-w-md mx-auto">
               Start adding your software or services to get matched with potential SME clients.
             </p>
-            <button
-              onClick={() => setIsAdding(true)}
-              className="text-blue-600 font-bold hover:underline"
-            >
-              Add your first product
-            </button>
+            {companyId ? (
+              <button
+                onClick={() => setIsAdding(true)}
+                className="text-blue-600 font-bold hover:underline"
+              >
+                Add your first product
+              </button>
+            ) : (
+              <p className="text-red-500 text-sm font-medium">Please complete your company profile to add products.</p>
+            )}
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -252,7 +277,7 @@ export default function ProviderProducts() {
                   {product.description || 'No description provided.'}
                 </p>
                 <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                  <span className="font-bold text-blue-900">{product.price}</span>
+                  <span className="font-bold text-blue-900">CHF {product.price}</span>
                   <button className="text-slate-400 hover:text-blue-600 text-sm font-medium">Edit</button>
                 </div>
               </div>
