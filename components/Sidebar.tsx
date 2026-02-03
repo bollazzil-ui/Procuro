@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package} from 'lucide-react';
+import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake } from 'lucide-react'; // Added Handshake
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -21,6 +21,9 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
   if (role === 'SME') {
     navItems.push({ name: 'Match Search', path: '/match-search', icon: <Search size={20} /> });
   }
+
+  // Common for both roles (Matches)
+  navItems.push({ name: 'My Matches', path: '/matches', icon: <Handshake size={20} /> });
 
   if (role === 'PROVIDER') {
     navItems.push({ name: 'My Products', path: '/provider-products', icon: <Package size={20} /> });

@@ -15,6 +15,7 @@ import SMEProfile from './pages/SMEProfile';
 import SMEMatchSearch from './pages/SMEMatchSearch';
 import ProviderProfile from './pages/ProviderProfile';
 import ProviderProducts from './pages/ProviderProducts';
+import Matches from './pages/Matches';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -75,6 +76,16 @@ export default function App() {
               <ProtectedRoute allowedRole="PROVIDER">
                 <ProfileLayout>
                   <ProviderProducts />
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="matches"
+            element={
+              <ProtectedRoute>
+                <ProfileLayout>
+                  <Matches />
                 </ProfileLayout>
               </ProtectedRoute>
             }
