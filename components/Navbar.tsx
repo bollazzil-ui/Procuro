@@ -62,10 +62,13 @@ const Navbar = () => {
               <Link to="/login" className="text-slate-600 hover:text-blue-600 font-medium">Log In</Link>
             )}
 
-            <button className="bg-[#FFD700] hover:bg-[#F0C800] text-blue-900 px-5 py-2.5 rounded-full font-bold transition-all shadow-sm flex items-center gap-2">
-              <Sparkles size={18} />
-              Get AI Matches
-            </button>
+            {/* Button visible only when NOT logged in */}
+            {!user && (
+              <button className="bg-[#FFD700] hover:bg-[#F0C800] text-blue-900 px-5 py-2.5 rounded-full font-bold transition-all shadow-sm flex items-center gap-2">
+                <Sparkles size={18} />
+                Get AI Matches
+              </button>
+            )}
           </div>
 
           <div className="md:hidden">
