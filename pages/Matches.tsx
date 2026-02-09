@@ -3,30 +3,34 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Handshake, Loader2, Building2, Package, Calendar, Mail, Phone, ExternalLink, AlertCircle } from 'lucide-react';
 
-// Updated Interface with Aliases
+// Updated Interface based on the new schema
 interface MatchItem {
   id: string;
   status: string;
   created_at: string;
 
-  // Aliased as 'product_details'
-  product_details?: {
+  // For SME View: The product they matched with
+  product?: {
     name: string;
     category: string;
     price: number;
     description: string;
-    // Aliased as 'provider_details'
-    provider_details?: {
+    // The provider of that product
+    provider?: {
       company_name: string;
       city: string;
-    } | null; // Expecting single object for N:1 relation
+    } | null;
   } | null;
 
-  // Aliased as 'requester_details'
-  requester_details?: {
+  // For Provider View: The SME who requested the match
+  requester?: {
     company_name: string;
     city: string;
-    employee_count: number;
+    // SME specific details from profile_smes table
+    sme_info?: {
+      employee_count: number;
+    } | null;
+    // Contact details from contacts table
     contacts?: {
       first_name: string;
       last_name: string;
@@ -55,66 +59,66 @@ export default function Matches() {
       setLoading(true);
       setError(null);
 
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('profile_id', user?.id)
-        .single();
-
-      if (companyError) throw companyError;
-      const companyId = companyData.id;
+      // We no longer need to fetch a separate 'company_id'.
+      // The user.id IS the profile_id in the new schema.
+      const userProfileId = user?.id;
+      if (!userProfileId) return;
 
       if (role === 'SME') {
         // --- SME View ---
+        // "Show me matches where I am the requester"
         const { data, error } = await supabase
           .from('matches')
           .select(`
             id,
             status,
             created_at,
-            product_details:products!matches_product_fkey (
+            product:products!matches_product_fkey (
               name,
               category,
               price,
               description,
-              provider_details:companies!products_company_id_fkey (
+              provider:profiles!products_profile_fkey (
                 company_name,
                 city
               )
             )
           `)
-          .eq('requester_company_id', companyId)
+          .eq('requester_profile_id', userProfileId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        console.log("SME Matches payload:", data); // Check console to confirm data is now present
         setMatches(data || []);
 
       } else if (role === 'PROVIDER') {
         // --- Provider View ---
+        // FIXED: The Foreign Key hint must match the DB constraint "matches_requester_fkey"
         const { data, error } = await supabase
           .from('matches')
           .select(`
             id,
             status,
             created_at,
-            requester_details:companies!matches_requester_fkey (
+            product:products!matches_product_fkey!inner (
+              name,
+              category,
+              profile_id
+            ),
+            requester:profiles!matches_requester_fkey (
               company_name,
               city,
-              employee_count,
-              contacts:contacts!contacts_company_id_fkey (
+              sme_info:profile_smes (
+                employee_count
+              ),
+              contacts (
                 first_name,
                 last_name,
                 email,
                 phone_number
               )
-            ),
-            product_details:products!matches_product_fkey!inner (
-              name,
-              category
             )
           `)
-          .eq('products.company_id', companyId)
+          .eq('product.profile_id', userProfileId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -137,14 +141,15 @@ export default function Matches() {
     }
   };
 
-  // Safe accessor for provider details
-  const getProviderInfo = (match: MatchItem) => {
-    const details = match.product_details?.provider_details;
-    // Check if details is an array (edge case) or object and return name
-    if (Array.isArray(details)) {
-        return details[0] || null;
+  // Helper to safely get employee count (handles array or object return from Supabase)
+  const getEmployeeCount = (requester: MatchItem['requester']) => {
+    if (!requester?.sme_info) return 0;
+    // If Supabase returns an array for 1:1 relation
+    if (Array.isArray(requester.sme_info)) {
+        return requester.sme_info[0]?.employee_count || 0;
     }
-    return details || null;
+    // If Supabase returns a single object
+    return requester.sme_info.employee_count || 0;
   };
 
   return (
@@ -188,7 +193,9 @@ export default function Matches() {
         ) : (
           <div className="space-y-4">
             {matches.map((match) => {
-              const provider = getProviderInfo(match);
+              const provider = match.product?.provider;
+              const requester = match.requester;
+              const contact = requester?.contacts?.[0]; // Get primary contact
 
               return (
                 <div key={match.id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all group">
@@ -205,7 +212,7 @@ export default function Matches() {
                           // SME View
                           <>
                             <h3 className="font-bold text-blue-950 text-lg">
-                              {match.product_details?.name || 'Unknown Product'}
+                              {match.product?.name || 'Unknown Product'}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                               <Building2 size={14} />
@@ -213,7 +220,7 @@ export default function Matches() {
                                 {provider ? provider.company_name : 'Unknown Provider'}
                               </span>
                               <span className="text-slate-300">•</span>
-                              <span>{match.product_details?.category}</span>
+                              <span>{match.product?.category}</span>
                               {provider?.city && (
                                 <>
                                   <span className="text-slate-300">•</span>
@@ -226,19 +233,30 @@ export default function Matches() {
                           // Provider View
                           <>
                             <h3 className="font-bold text-blue-950 text-lg">
-                              {match.requester_details?.company_name || 'Unknown Company'}
+                              {requester?.company_name || 'Unknown Company'}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                               <span className="bg-slate-100 px-2 py-0.5 rounded text-xs font-semibold text-slate-600">
-                                Interested in: {match.product_details?.name}
+                                Interested in: {match.product?.name}
                               </span>
-                              {match.requester_details?.city && (
+                              {requester?.city && (
                                 <>
                                   <span className="text-slate-300">•</span>
-                                  <span>{match.requester_details.city}</span>
+                                  <span>{requester.city}</span>
+                                </>
+                              )}
+                              {getEmployeeCount(requester) > 0 && (
+                                <>
+                                   <span className="text-slate-300">•</span>
+                                   <span>{getEmployeeCount(requester)} Employees</span>
                                 </>
                               )}
                             </div>
+                            {contact && (
+                              <div className="text-xs text-slate-400 mt-1">
+                                Contact: {contact.first_name} {contact.last_name}
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
@@ -257,11 +275,16 @@ export default function Matches() {
                          </div>
                       </div>
 
-                      {role === 'PROVIDER' && match.requester_details?.contacts?.[0] && (
+                      {role === 'PROVIDER' && contact && (
                          <div className="flex gap-2">
-                           <a href={`mailto:${match.requester_details.contacts[0].email}`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Send Email">
+                           <a href={`mailto:${contact.email}`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Send Email">
                              <Mail size={20} />
                            </a>
+                           {contact.phone_number && (
+                              <a href={`tel:${contact.phone_number}`} className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Call">
+                                <Phone size={20} />
+                              </a>
+                           )}
                          </div>
                       )}
 
