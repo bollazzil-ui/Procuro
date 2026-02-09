@@ -7,12 +7,12 @@ import { Plus, Package, Loader2, X, Save, AlertCircle } from 'lucide-react';
 interface Product {
   id: string;
   created_at: string;
-  company_id: string; // Updated from profile_id
+  profile_id: string; // Changed from company_id to profile_id
   name: string;
   description: string | null;
-  price: number | null; // numeric type in SQL
+  price: number | null;
   category: string | null;
-  created_by: string | null; // references auth.users(id)
+  // created_by removed as per schema (implied by profile_id)
 }
 
 const INITIAL_FORM_STATE = {
@@ -25,7 +25,7 @@ const INITIAL_FORM_STATE = {
 export default function ProviderProducts() {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  // We no longer need to fetch a separate companyId, as profile_id === user.id
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,48 +36,33 @@ export default function ProviderProducts() {
 
   useEffect(() => {
     if (user) {
-      initializeProviderData();
+      fetchProducts();
     }
   }, [user]);
 
-  const initializeProviderData = async () => {
+  const fetchProducts = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
       setError(null);
 
-      // 1. Fetch the company linked to the current profile
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('profile_id', user?.id)
-        .single();
+      // Fetch products using the user's ID as the profile_id
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('profile_id', user.id) // Updated to match schema
+        .order('created_at', { ascending: false });
 
-      if (companyError) throw companyError;
+      if (fetchError) throw fetchError;
+      setProducts(data || []);
 
-      if (companyData) {
-        setCompanyId(companyData.id);
-        // 2. Fetch products for this specific company
-        await fetchProducts(companyData.id);
-      } else {
-        setError("Company profile not found. Please complete your registration.");
-      }
     } catch (err: any) {
-      console.error('Error initializing provider data:', err);
-      setError(err.message || 'Failed to load company data.');
+      console.error('Error fetching products:', err);
+      setError(err.message || 'Failed to load products.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchProducts = async (cId: string) => {
-    const { data, error: fetchError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('company_id', cId)
-      .order('created_at', { ascending: false });
-
-    if (fetchError) throw fetchError;
-    setProducts(data || []);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -87,29 +72,28 @@ export default function ProviderProducts() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !companyId) return;
+    if (!user) return;
 
     setSubmitting(true);
     setError(null);
 
     try {
-      // Insert product using company_id and created_by as per new schema
+      // Insert product using profile_id (which is the user's ID)
       const { error: insertError } = await supabase
         .from('products')
         .insert({
-          company_id: companyId,
+          profile_id: user.id, // Updated from company_id
           name: formData.name,
           description: formData.description,
-          price: parseFloat(formData.price), // Ensure numeric format
-          category: formData.category,
-          created_by: user.id
+          price: parseFloat(formData.price),
+          category: formData.category
         });
 
       if (insertError) throw insertError;
 
       setFormData(INITIAL_FORM_STATE);
       setIsAdding(false);
-      await fetchProducts(companyId);
+      await fetchProducts();
 
     } catch (err: any) {
       console.error('Error adding product:', err);
@@ -132,7 +116,7 @@ export default function ProviderProducts() {
             </h1>
             <p className="text-slate-500 mt-2">Manage the services and software your company offers to SMEs.</p>
           </div>
-          {!isAdding && companyId && (
+          {!isAdding && (
             <button
               onClick={() => setIsAdding(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2"
@@ -249,16 +233,12 @@ export default function ProviderProducts() {
             <p className="text-slate-500 mt-2 mb-6 max-w-md mx-auto">
               Start adding your software or services to get matched with potential SME clients.
             </p>
-            {companyId ? (
-              <button
-                onClick={() => setIsAdding(true)}
-                className="text-blue-600 font-bold hover:underline"
-              >
-                Add your first product
-              </button>
-            ) : (
-              <p className="text-red-500 text-sm font-medium">Please complete your company profile to add products.</p>
-            )}
+            <button
+              onClick={() => setIsAdding(true)}
+              className="text-blue-600 font-bold hover:underline"
+            >
+              Add your first product
+            </button>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -59,37 +59,47 @@ export default function RegisterPage() {
       if (data.session && data.user) {
         const userId = data.user.id;
 
-        // A. Insert Company
-        const { data: companyData, error: companyError } = await supabase
-          .from('companies')
+        // A. Insert Base Profile (Replaces 'companies')
+        const { error: profileError } = await supabase
+          .from('profiles')
           .insert({
-            profile_id: userId,
+            id: userId, // CRITICAL: This links the profile 1:1 with auth.users
+            role: role,
             company_name: formData.companyName,
             legal_form: formData.legalForm,
             address: formData.address,
             postal_code: formData.postalCode,
             city: formData.city,
-            country: formData.country,
-            employee_count: parseInt(formData.employeeCount),
-            workstation_count: parseInt(formData.workstationCount)
-          })
-          .select()
-          .single();
+            country: formData.country
+          });
 
-        if (companyError) throw companyError;
+        if (profileError) throw profileError;
 
-        // B. Insert Contact
+        // B. Insert SME Specific Data (Only if role is SME)
+        if (role === 'SME') {
+           const { error: smeError } = await supabase
+            .from('profile_smes')
+            .insert({
+              profile_id: userId,
+              employee_count: parseInt(formData.employeeCount) || 0,
+              workstation_count: parseInt(formData.workstationCount) || 0
+            });
+
+            if (smeError) throw smeError;
+        }
+
+        // C. Insert Contact (Now links via profile_id)
         const { error: contactError } = await supabase
           .from('contacts')
           .insert({
-            profile_id: userId,
-            company_id: companyData.id,
+            profile_id: userId, // Updated from company_id
             email: formData.email,
             salutation: formData.salutation,
             first_name: formData.firstName,
             last_name: formData.lastName,
             job_function: formData.jobFunction,
-            phone_number: formData.phone
+            phone_number: formData.phone,
+            is_primary_contact: true
           });
 
         if (contactError) throw contactError;
@@ -210,10 +220,6 @@ export default function RegisterPage() {
             {/* Section 2: Contact Person */}
             <div className="md:col-span-2 space-y-4">
                <h3 className="text-sm font-bold text-blue-950 uppercase tracking-wider border-b border-slate-100 pb-2">Contact Person</h3>
-               {/* ADJUSTMENT:
-                  - Changed grid distribution to [2, 2, 2] on desktop (md:col-span-2 for all 3 inputs).
-                  - Added whitespace-nowrap to Salutation label to prevent wrapping.
-               */}
                <div className="grid grid-cols-6 gap-4">
                   <div className="col-span-2 md:col-span-2 space-y-1">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 whitespace-nowrap">Salutation *</label>
@@ -347,32 +353,37 @@ export default function RegisterPage() {
                     />
                   </div>
 
-                  <div className="col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Employees *</label>
-                    <input
-                      name="employeeCount"
-                      type="number"
-                      required
-                      min="1"
-                      value={formData.employeeCount}
-                      onChange={handleChange}
-                      placeholder="Count"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div className="col-span-1 space-y-1">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Workstations *</label>
-                    <input
-                      name="workstationCount"
-                      type="number"
-                      required
-                      min="1"
-                      value={formData.workstationCount}
-                      onChange={handleChange}
-                      placeholder="Count"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
+                  {/* Only show these for SMEs as per schema logic */}
+                  {role === 'SME' && (
+                    <>
+                      <div className="col-span-1 space-y-1">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Employees *</label>
+                        <input
+                          name="employeeCount"
+                          type="number"
+                          required
+                          min="1"
+                          value={formData.employeeCount}
+                          onChange={handleChange}
+                          placeholder="Count"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                      </div>
+                      <div className="col-span-1 space-y-1">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Workstations *</label>
+                        <input
+                          name="workstationCount"
+                          type="number"
+                          required
+                          min="1"
+                          value={formData.workstationCount}
+                          onChange={handleChange}
+                          placeholder="Count"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
                </div>
             </div>
 
