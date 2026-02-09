@@ -1,9 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { Search, Heart, Settings, Bell } from 'lucide-react';
 
 export default function SMEProfile() {
   const { user } = useAuth();
+  const [companyName, setCompanyName] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch company_name from the 'profiles' table using the user's ID
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('company_name')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        if (data) {
+          setCompanyName(data.company_name);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [user]);
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-slate-50">
@@ -13,7 +46,11 @@ export default function SMEProfile() {
           <div>
             <span className="text-blue-600 font-bold uppercase tracking-widest text-xs">SME Workspace</span>
             <h1 className="text-3xl md:text-4xl font-black text-blue-950 mt-2">
-              Welcome back, <span className="text-blue-600">{user?.email?.split('@')[0]}</span>
+              Welcome back,{' '}
+              <span className="text-blue-600">
+                {/* Display company name if loaded, otherwise fallback to email or skeleton */}
+                {loading ? '...' : (companyName || user?.email?.split('@')[0])}
+              </span>
             </h1>
             <p className="text-slate-500 mt-2">Manage your tool searches and matched providers.</p>
           </div>

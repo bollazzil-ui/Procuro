@@ -34,7 +34,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className={`font-medium transition-colors ${isActive('/') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Browse Categories</Link>
+            <Link to="/" className={`font-medium transition-colors ${isActive('/') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Our Solution</Link>
             <Link to="/sme" className={`font-medium transition-colors ${isActive('/sme') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>For SMEs</Link>
             <Link to="/provider" className={`font-medium transition-colors ${isActive('/provider') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>For Providers</Link>
             <Link to="/about" className={`font-medium transition-colors ${isActive('/about') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>About Us</Link>
@@ -79,7 +79,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-white border-b border-slate-100 p-4 space-y-4">
-           <Link to="/" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>Browse Categories</Link>
+           <Link to="/" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>Our Solution</Link>
            <Link to="/sme" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>For SMEs</Link>
            <Link to="/provider" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>For Providers</Link>
            <Link to="/about" className="block py-2 text-slate-600" onClick={() => setIsOpen(false)}>About Us</Link>
