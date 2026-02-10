@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Package, Loader2, X, Save, AlertCircle, Trash2 } from 'lucide-react';
+import { Plus, Package, Loader2, X, Save, AlertCircle, Trash2, Pencil } from 'lucide-react';
 
 // Interface matching the new public.products table structure
 interface Product {
@@ -26,8 +26,9 @@ export default function ProviderProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // State for Add Mode
-  const [isAdding, setIsAdding] = useState(false);
+  // State for Add/Edit Mode
+  const [isFormOpen, setIsFormOpen] = useState(false); // Renamed from isAdding to be generic
+  const [editingId, setEditingId] = useState<string | null>(null); // Track ID of product being edited
   const [submitting, setSubmitting] = useState(false);
 
   // State for Delete Mode
@@ -74,28 +75,69 @@ export default function ProviderProducts() {
     if (error) setError(null);
   };
 
+  // --- Add / Edit Logic ---
+
+  const handleEditClick = (product: Product) => {
+    // Populate form with existing data
+    setFormData({
+      name: product.name,
+      description: product.description || '',
+      price: product.price ? product.price.toString() : '',
+      category: product.category || ''
+    });
+    setEditingId(product.id);
+    setIsFormOpen(true);
+    // Scroll to top to see the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const closeForm = () => {
+    setFormData(INITIAL_FORM_STATE);
+    setEditingId(null);
+    setIsFormOpen(false);
+    setError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setSubmitting(true);
+    setError(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-product', {
-        body: {
-          profile_id: user.id,
-          name: formData.name,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          category: formData.category
-        }
-      });
+      if (editingId) {
+        // --- UPDATE EXISTING PRODUCT ---
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({
+            name: formData.name,
+            description: formData.description,
+            price: parseFloat(formData.price),
+            category: formData.category
+          })
+          .eq('id', editingId)
+          .eq('profile_id', user.id); // Security check
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+        if (updateError) throw updateError;
+      } else {
+        // --- CREATE NEW PRODUCT ---
+        // Using existing edge function logic for creation
+        const { data, error } = await supabase.functions.invoke('create-product', {
+          body: {
+            profile_id: user.id,
+            name: formData.name,
+            description: formData.description,
+            price: parseFloat(formData.price),
+            category: formData.category
+          }
+        });
 
-      // Success
-      setFormData(INITIAL_FORM_STATE);
-      setIsAdding(false);
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      }
+
+      // Success for both cases
+      closeForm();
       await fetchProducts();
 
     } catch (err: any) {
@@ -124,9 +166,9 @@ export default function ProviderProducts() {
 
       if (error) throw error;
 
-      // Update UI locally without refetching for speed
+      // Update UI locally
       setProducts(current => current.filter(p => p.id !== productToDelete.id));
-      setProductToDelete(null); // Close modal
+      setProductToDelete(null);
 
     } catch (err: any) {
       console.error('Error deleting product:', err);
@@ -149,9 +191,9 @@ export default function ProviderProducts() {
             </h1>
             <p className="text-slate-500 mt-2">Manage the services and software your company offers to SMEs.</p>
           </div>
-          {!isAdding && (
+          {!isFormOpen && (
             <button
-              onClick={() => setIsAdding(true)}
+              onClick={() => setIsFormOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2"
             >
               <Plus size={18} /> Add Product
@@ -159,12 +201,14 @@ export default function ProviderProducts() {
           )}
         </div>
 
-        {/* Add Product Form */}
-        {isAdding && (
+        {/* Add/Edit Product Form */}
+        {isFormOpen && (
           <div className="bg-white p-8 rounded-3xl border border-blue-100 shadow-lg mb-8 animate-fade-in">
             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-              <h3 className="font-bold text-blue-950 text-xl">Add New Product</h3>
-              <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-slate-600">
+              <h3 className="font-bold text-blue-950 text-xl">
+                {editingId ? 'Edit Product' : 'Add New Product'}
+              </h3>
+              <button onClick={closeForm} className="text-slate-400 hover:text-slate-600">
                 <X size={24} />
               </button>
             </div>
@@ -234,7 +278,7 @@ export default function ProviderProducts() {
               <div className="flex justify-end gap-4 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsAdding(false)}
+                  onClick={closeForm}
                   className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-colors"
                 >
                   Cancel
@@ -245,7 +289,7 @@ export default function ProviderProducts() {
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {submitting ? <Loader2 className="animate-spin" /> : <Save size={18} />}
-                  Save Product
+                  {editingId ? 'Update Product' : 'Save Product'}
                 </button>
               </div>
             </form>
@@ -253,7 +297,7 @@ export default function ProviderProducts() {
         )}
 
         {/* Global Error (Delete or Fetch) */}
-        {error && !isAdding && (
+        {error && !isFormOpen && (
           <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
              <AlertCircle size={20} />
              <span className="text-sm font-medium">{error}</span>
@@ -265,7 +309,7 @@ export default function ProviderProducts() {
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-blue-600" size={32} />
           </div>
-        ) : products.length === 0 && !isAdding ? (
+        ) : products.length === 0 && !isFormOpen ? (
           <div className="bg-white p-12 rounded-3xl border border-slate-100 text-center shadow-sm">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Package size={32} />
@@ -275,7 +319,7 @@ export default function ProviderProducts() {
               Start adding your software or services to get matched with potential SME clients.
             </p>
             <button
-              onClick={() => setIsAdding(true)}
+              onClick={() => setIsFormOpen(true)}
               className="text-blue-600 font-bold hover:underline"
             >
               Add your first product
@@ -302,13 +346,14 @@ export default function ProviderProducts() {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2">
-                    <button className="text-slate-400 hover:text-blue-600 text-sm font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors">
-                      Edit
+                    <button
+                      onClick={() => handleEditClick(product)}
+                      className="text-slate-400 hover:text-blue-600 text-sm font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1"
+                    >
+                      <Pencil size={16} /> Edit
                     </button>
-                    {/* Trash / Delete Button */}
                     <button
                       onClick={() => handleDeleteClick(product)}
-                      // Changed text-slate-300 to text-slate-400 to match Edit button
                       className="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors"
                       title="Delete Product"
                     >
