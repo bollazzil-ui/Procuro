@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Package, Loader2, X, Save, AlertCircle } from 'lucide-react';
+import { Plus, Package, Loader2, X, Save, AlertCircle, Trash2 } from 'lucide-react';
 
 // Interface matching the new public.products table structure
 interface Product {
   id: string;
   created_at: string;
-  profile_id: string; // Changed from company_id to profile_id
+  profile_id: string;
   name: string;
   description: string | null;
   price: number | null;
   category: string | null;
-  // created_by removed as per schema (implied by profile_id)
 }
 
 const INITIAL_FORM_STATE = {
@@ -25,10 +24,16 @@ const INITIAL_FORM_STATE = {
 export default function ProviderProducts() {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
-  // We no longer need to fetch a separate companyId, as profile_id === user.id
   const [loading, setLoading] = useState(true);
+
+  // State for Add Mode
   const [isAdding, setIsAdding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // State for Delete Mode
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
   // Form State
@@ -47,8 +52,6 @@ export default function ProviderProducts() {
       setLoading(true);
       setError(null);
 
-      // BEST PRACTICE: Select specific columns instead of '*'
-      // to avoid downloading heavy embedding vectors that you don't use.
       const { data, error: fetchError } = await supabase
         .from('products')
         .select('id, created_at, profile_id, name, description, price, category')
@@ -71,14 +74,12 @@ export default function ProviderProducts() {
     if (error) setError(null);
   };
 
-  // ... inside your handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setSubmitting(true);
 
     try {
-      // Calls the function we just created in the dashboard
       const { data, error } = await supabase.functions.invoke('create-product', {
         body: {
           profile_id: user.id,
@@ -105,8 +106,38 @@ export default function ProviderProducts() {
     }
   };
 
+  // --- Delete Logic ---
+
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productToDelete.id);
+
+      if (error) throw error;
+
+      // Update UI locally without refetching for speed
+      setProducts(current => current.filter(p => p.id !== productToDelete.id));
+      setProductToDelete(null); // Close modal
+
+    } catch (err: any) {
+      console.error('Error deleting product:', err);
+      setError('Failed to delete product. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-slate-50">
+    <div className="pt-24 pb-20 min-h-screen bg-slate-50 relative">
       <div className="max-w-7xl mx-auto px-4">
 
         {/* Header Section */}
@@ -221,6 +252,14 @@ export default function ProviderProducts() {
           </div>
         )}
 
+        {/* Global Error (Delete or Fetch) */}
+        {error && !isAdding && (
+          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
+             <AlertCircle size={20} />
+             <span className="text-sm font-medium">{error}</span>
+          </div>
+        )}
+
         {/* Products List */}
         {loading ? (
           <div className="flex justify-center py-20">
@@ -260,13 +299,62 @@ export default function ProviderProducts() {
                 </p>
                 <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                   <span className="font-bold text-blue-900">CHF {product.price}</span>
-                  <button className="text-slate-400 hover:text-blue-600 text-sm font-medium">Edit</button>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <button className="text-slate-400 hover:text-blue-600 text-sm font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors">
+                      Edit
+                    </button>
+                    {/* Trash / Delete Button */}
+                    <button
+                      onClick={() => handleDeleteClick(product)}
+                      // Changed text-slate-300 to text-slate-400 to match Edit button
+                      className="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                      title="Delete Product"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal Overlay */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-slate-100">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900">Delete Product?</h3>
+              <p className="text-slate-500 mt-2">
+                Are you sure you want to delete <span className="font-bold text-slate-900">{productToDelete.name}</span>?
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-colors border border-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2"
+              >
+                {isDeleting ? <Loader2 className="animate-spin" size={20} /> : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
