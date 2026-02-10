@@ -1,8 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Plus, Clock, ChevronRight } from 'lucide-react';
+import { Bot, Plus, Clock, ChevronRight, Loader2, Calendar, FileText } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+
+// Define the interface based on the table we created
+interface MatchSession {
+  id: string;
+  created_at: string;
+  purpose: string;
+  status: string;
+  user_count: number;
+}
 
 export default function MatchAssistant() {
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState<MatchSession[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchSessions();
+    }
+  }, [user]);
+
+  const fetchSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('match_sessions')
+        .select('*')
+        .eq('profile_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSessions(data || []);
+    } catch (err) {
+      console.error('Error loading sessions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="pt-24 pb-20 px-8 animate-fade-in min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto">
@@ -20,7 +58,7 @@ export default function MatchAssistant() {
           </Link>
         </div>
 
-        {/* Empty State / Intro Card */}
+        {/* Intro Card */}
         <div className="bg-white rounded-[2rem] p-10 border border-slate-100 shadow-sm text-center mb-12">
           <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Bot size={40} />
@@ -37,14 +75,57 @@ export default function MatchAssistant() {
           </Link>
         </div>
 
-        {/* Previous Sessions (Placeholder) */}
+        {/* Recent Sessions */}
         <div className="mb-6">
-          <h3 className="font-bold text-blue-950 mb-4 flex items-center gap-2">
+          <h3 className="font-bold text-blue-950 mb-6 flex items-center gap-2">
             <Clock size={18} className="text-slate-400" /> Recent Sessions
           </h3>
-          <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
-            No previous sessions found. Start your first search above!
-          </div>
+
+          {loading ? (
+             <div className="flex justify-center py-8">
+               <Loader2 className="animate-spin text-blue-600" size={24} />
+             </div>
+          ) : sessions.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
+              No previous sessions found. Start your first search above!
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {sessions.map((session) => (
+                <div key={session.id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all flex flex-col md:flex-row justify-between md:items-center gap-4 group">
+                   <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-blue-950 line-clamp-1">{session.purpose}</h4>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} /> {new Date(session.created_at).toLocaleDateString('de-CH')}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <span>{session.user_count} User(s)</span>
+                        </div>
+                      </div>
+                   </div>
+
+                   <div className="flex items-center justify-between md:justify-end gap-4 min-w-[150px]">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${
+                        session.status === 'completed'
+                          ? 'bg-green-50 text-green-700 border-green-200'
+                          : 'bg-amber-50 text-amber-600 border-amber-100'
+                      }`}>
+                        {session.status}
+                      </span>
+                      {/* Placeholder for future "View Details" functionality */}
+                      <button className="text-slate-400 group-hover:text-blue-600 transition-colors">
+                        <ChevronRight size={20} />
+                      </button>
+                   </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

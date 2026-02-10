@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { Bot, ArrowLeft, Save, Sparkles, AlertCircle } from 'lucide-react'; // Added AlertCircle
+import { supabase } from '../lib/supabase'; // Import supabase
+import { useAuth } from '../context/AuthContext'; // Import auth
 
 export default function MatchSession() {
   const navigate = useNavigate();
+  const { user } = useAuth(); // Get current user
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); // Error state
+
   const [formData, setFormData] = useState({
     purpose: '',
     users: '',
@@ -18,14 +23,35 @@ export default function MatchSession() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!user) return; // Guard clause
 
-    // Simulate AI Processing / Saving
-    setTimeout(() => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Insert into Supabase
+      const { error: insertError } = await supabase
+        .from('match_sessions')
+        .insert({
+          profile_id: user.id,
+          purpose: formData.purpose,
+          user_count: parseInt(formData.users) || 0,
+          existing_stack: formData.existingStack,
+          budget: formData.priceRange,
+          status: 'analyzing' // Initial status
+        });
+
+      if (insertError) throw insertError;
+
+      // Redirect back to the Assistant page to see the new list
+      navigate('/match-assistant');
+
+    } catch (err: any) {
+      console.error('Error saving session:', err);
+      setError(err.message || "Failed to save session");
+    } finally {
       setLoading(false);
-      // For now, redirect back to dashboard or matches
-      navigate('/matches');
-    }, 1500);
+    }
   };
 
   return (
@@ -54,6 +80,13 @@ export default function MatchSession() {
 
           {/* Form */}
           <div className="p-8 md:p-10">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-center gap-2">
+                <AlertCircle size={20} />
+                <span>{error}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-8">
 
               {/* Question 1: Purpose */}
@@ -127,7 +160,7 @@ export default function MatchSession() {
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 disabled:opacity-70"
                 >
                   {loading ? (
-                    <>Processing...</>
+                    <>Saving...</>
                   ) : (
                     <>
                       <Sparkles size={20} /> Generate Matches
