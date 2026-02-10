@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Plus, Clock, ChevronRight, Loader2, Calendar, FileText } from 'lucide-react';
+import { Bot, Plus, Clock, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,6 +17,11 @@ export default function MatchAssistant() {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<MatchSession[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Deletion State
+  const [sessionToDelete, setSessionToDelete] = useState<MatchSession | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -38,6 +43,30 @@ export default function MatchAssistant() {
       console.error('Error loading sessions:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!sessionToDelete) return;
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase
+        .from('match_sessions')
+        .delete()
+        .eq('id', sessionToDelete.id);
+
+      if (error) throw error;
+
+      // Update UI locally by filtering out the deleted session
+      setSessions((current) => current.filter((s) => s.id !== sessionToDelete.id));
+      setSessionToDelete(null);
+    } catch (err: any) {
+      console.error('Error deleting session:', err);
+      setError('Failed to delete session. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -81,6 +110,14 @@ export default function MatchAssistant() {
             <Clock size={18} className="text-slate-400" /> Recent Sessions
           </h3>
 
+          {/* Error Message for Deletion */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
+              <AlertCircle size={20} />
+              <span className="text-sm font-medium">{error}</span>
+            </div>
+          )}
+
           {loading ? (
              <div className="flex justify-center py-8">
                <Loader2 className="animate-spin text-blue-600" size={24} />
@@ -117,10 +154,22 @@ export default function MatchAssistant() {
                       }`}>
                         {session.status}
                       </span>
-                      {/* Placeholder for future "View Details" functionality */}
-                      <button className="text-slate-400 group-hover:text-blue-600 transition-colors">
-                        <ChevronRight size={20} />
-                      </button>
+
+                      <div className="flex items-center gap-2">
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => setSessionToDelete(session)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete Session"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+
+                        {/* View/Edit Button Placeholder */}
+                        <button className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                          <ChevronRight size={20} />
+                        </button>
+                      </div>
                    </div>
                 </div>
               ))}
@@ -128,6 +177,39 @@ export default function MatchAssistant() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {sessionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-slate-100">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900">Delete Session?</h3>
+              <p className="text-slate-500 mt-2">
+                Are you sure you want to delete this search session? This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSessionToDelete(null)}
+                className="flex-1 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-colors border border-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2"
+              >
+                {isDeleting ? <Loader2 className="animate-spin" size={20} /> : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
