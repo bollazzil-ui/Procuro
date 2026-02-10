@@ -13,6 +13,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SMEProfile from './pages/SMEProfile';
 import SMEMatchSearch from './pages/SMEMatchSearch';
+import MatchAssistant from './pages/MatchAssistant'; // Import
+import MatchSession from './pages/MatchSession';     // Import
 import ProviderProfile from './pages/ProviderProfile';
 import ProviderProducts from './pages/ProviderProducts';
 import Matches from './pages/Matches';
@@ -31,7 +33,6 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout />}>
-          {/* ... (keep existing routes) ... */}
           <Route index element={<Home />} />
           <Route path="sme" element={<SME />} />
           <Route path="provider" element={<Provider />} />
@@ -62,7 +63,6 @@ export default function App() {
           <Route
             path="match-search"
             element={
-              // Added allowedRole="SME" here
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
                   <SMEMatchSearch />
@@ -70,6 +70,28 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          {/* New Match Assistant Routes */}
+          <Route
+            path="match-assistant"
+            element={
+              <ProtectedRoute allowedRole="SME">
+                <ProfileLayout>
+                  <MatchAssistant />
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="match-assistant/new"
+            element={
+              <ProtectedRoute allowedRole="SME">
+                <ProfileLayout>
+                  <MatchSession />
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="provider-products"
             element={

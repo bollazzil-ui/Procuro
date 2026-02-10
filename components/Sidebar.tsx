@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake } from 'lucide-react'; // Added Handshake
+import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake, Bot } from 'lucide-react'; // Added Bot icon
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -20,6 +20,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
 
   if (role === 'SME') {
     navItems.push({ name: 'Match Search', path: '/match-search', icon: <Search size={20} /> });
+    // Added Match Assistant Item
+    navItems.push({ name: 'Match Assistant', path: '/match-assistant', icon: <Bot size={20} /> });
   }
 
   // Common for both roles (Matches)
