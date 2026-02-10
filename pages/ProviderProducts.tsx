@@ -47,11 +47,12 @@ export default function ProviderProducts() {
       setLoading(true);
       setError(null);
 
-      // Fetch products using the user's ID as the profile_id
+      // BEST PRACTICE: Select specific columns instead of '*'
+      // to avoid downloading heavy embedding vectors that you don't use.
       const { data, error: fetchError } = await supabase
         .from('products')
-        .select('*')
-        .eq('profile_id', user.id) // Updated to match schema
+        .select('id, created_at, profile_id, name, description, price, category')
+        .eq('profile_id', user.id)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -70,34 +71,35 @@ export default function ProviderProducts() {
     if (error) setError(null);
   };
 
+  // ... inside your handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
     setSubmitting(true);
-    setError(null);
 
     try {
-      // Insert product using profile_id (which is the user's ID)
-      const { error: insertError } = await supabase
-        .from('products')
-        .insert({
-          profile_id: user.id, // Updated from company_id
+      // Calls the function we just created in the dashboard
+      const { data, error } = await supabase.functions.invoke('create-product', {
+        body: {
+          profile_id: user.id,
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price),
           category: formData.category
-        });
+        }
+      });
 
-      if (insertError) throw insertError;
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
+      // Success
       setFormData(INITIAL_FORM_STATE);
       setIsAdding(false);
       await fetchProducts();
 
     } catch (err: any) {
-      console.error('Error adding product:', err);
-      setError(err.message || 'Failed to add product. Please try again.');
+      console.error('Error:', err);
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
