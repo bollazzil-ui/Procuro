@@ -4,7 +4,7 @@ import { Bot, ArrowLeft, Save, Sparkles, AlertCircle } from 'lucide-react'; // A
 import { supabase } from '../lib/supabase'; // Import supabase
 import { useAuth } from '../context/AuthContext'; // Import auth
 
-export default function MatchSession() {
+export default function SMEMatchSession() {
   const navigate = useNavigate();
   const { user } = useAuth(); // Get current user
   const [loading, setLoading] = useState(false);

@@ -13,8 +13,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SMEProfile from './pages/SMEProfile';
 import SMEMatchSearch from './pages/SMEMatchSearch';
-import MatchAssistant from './pages/MatchAssistant'; // Import
-import MatchSession from './pages/MatchSession';     // Import
+import SMEMatchAssistant from './pages/SMEMatchAssistant'; // Import
+import SMEMatchSession from './pages/SMEMatchSession';     // Import
 import ProviderProfile from './pages/ProviderProfile';
 import ProviderProducts from './pages/ProviderProducts';
 import Matches from './pages/Matches';
@@ -76,7 +76,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
-                  <MatchAssistant />
+                  <SMEMatchAssistant />
                 </ProfileLayout>
               </ProtectedRoute>
             }
@@ -86,7 +86,7 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
-                  <MatchSession />
+                  <SMEMatchSession />
                 </ProfileLayout>
               </ProtectedRoute>
             }

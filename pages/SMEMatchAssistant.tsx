@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 // Define the interface based on the table we created
-interface MatchSession {
+interface SMEMatchSession {
   id: string;
   created_at: string;
   purpose: string;
@@ -13,13 +13,13 @@ interface MatchSession {
   user_count: number;
 }
 
-export default function MatchAssistant() {
+export default function SMEMatchAssistant() {
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<MatchSession[]>([]);
+  const [sessions, setSessions] = useState<SMEMatchSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Deletion State
-  const [sessionToDelete, setSessionToDelete] = useState<MatchSession | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<SMEMatchSession | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
