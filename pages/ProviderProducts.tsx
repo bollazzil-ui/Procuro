@@ -27,8 +27,8 @@ export default function ProviderProducts() {
   const [loading, setLoading] = useState(true);
 
   // State for Add/Edit Mode
-  const [isFormOpen, setIsFormOpen] = useState(false); // Renamed from isAdding to be generic
-  const [editingId, setEditingId] = useState<string | null>(null); // Track ID of product being edited
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // State for Delete Mode
@@ -87,7 +87,6 @@ export default function ProviderProducts() {
     });
     setEditingId(product.id);
     setIsFormOpen(true);
-    // Scroll to top to see the form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -106,22 +105,26 @@ export default function ProviderProducts() {
 
     try {
       if (editingId) {
-        // --- UPDATE EXISTING PRODUCT ---
-        const { error: updateError } = await supabase
-          .from('products')
-          .update({
+        // --- UPDATE EXISTING PRODUCT (Invoke Edge Function) ---
+        // We use the Edge Function to ensure embeddings are recalculated
+        console.log(editingId);
+        console.log(user.id);
+        const { data, error } = await supabase.functions.invoke('update-product', {
+          body: {
+            id: editingId,
+            profile_id: user.id,
             name: formData.name,
             description: formData.description,
             price: parseFloat(formData.price),
             category: formData.category
-          })
-          .eq('id', editingId)
-          .eq('profile_id', user.id); // Security check
+          }
+        });
 
-        if (updateError) throw updateError;
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
       } else {
-        // --- CREATE NEW PRODUCT ---
-        // Using existing edge function logic for creation
+        // --- CREATE NEW PRODUCT (Invoke Edge Function) ---
         const { data, error } = await supabase.functions.invoke('create-product', {
           body: {
             profile_id: user.id,
@@ -142,7 +145,7 @@ export default function ProviderProducts() {
 
     } catch (err: any) {
       console.error('Error:', err);
-      setError(err.message);
+      setError(err.message || 'An error occurred while saving.');
     } finally {
       setSubmitting(false);
     }
