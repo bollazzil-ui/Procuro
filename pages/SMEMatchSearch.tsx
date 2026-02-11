@@ -33,7 +33,8 @@ export default function SMEMatchSearch() {
 
   // --- Handlers ---
 
-  const handleSearch = async () => {
+  // Refactored: Fetch logic separated to support initial load with limit
+  const fetchProducts = async (limit?: number) => {
     setLoading(true);
     setError(null);
     setHasSearched(true);
@@ -75,7 +76,12 @@ export default function SMEMatchSearch() {
         query = query.lte('price', maxPrice);
       }
 
-      // 5. Execute
+      // 5. Apply Limit if provided (used for initial default view)
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      // 6. Execute
       const { data, error } = await query;
 
       if (error) throw error;
@@ -89,6 +95,16 @@ export default function SMEMatchSearch() {
     }
   };
 
+  // Initial Load: Fetch first 10 products by default
+  useEffect(() => {
+    fetchProducts(10);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSearch = () => {
+    fetchProducts(); // Manual search fetches all matching results
+  };
+
   // Allow triggering search with "Enter" key
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -98,7 +114,7 @@ export default function SMEMatchSearch() {
 
   return (
     <div className="pt-24 pb-20 px-8 animate-fade-in min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto"> {/* Increased width for better grid view */}
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-black text-blue-950">Match Search</h1>
           <p className="text-slate-500 mt-2">Find and connect with the perfect partners using AI-driven filters.</p>
@@ -223,7 +239,7 @@ export default function SMEMatchSearch() {
              )}
 
              {!hasSearched ? (
-               // State 1: Before Search (Placeholder)
+               // State 1: Before Search (Placeholder) - Should rarely be seen now due to useEffect
                <div className="bg-white p-12 rounded-3xl border border-slate-100 text-center">
                   <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search size={32} />
