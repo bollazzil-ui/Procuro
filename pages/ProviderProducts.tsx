@@ -100,6 +100,15 @@ export default function ProviderProducts() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // --- Validation Start ---
+    // Ensure description is not empty or just whitespace
+    if (!formData.description || formData.description.trim().length === 0) {
+      setError('Product description is required.');
+      return;
+    }
+    // --- Validation End ---
+
     setSubmitting(true);
     setError(null);
 
@@ -114,7 +123,7 @@ export default function ProviderProducts() {
             id: editingId,
             profile_id: user.id,
             name: formData.name,
-            description: formData.description,
+            description: formData.description.trim(), // Best practice: trim before sending
             price: parseFloat(formData.price),
             category: formData.category
           }
@@ -129,7 +138,7 @@ export default function ProviderProducts() {
           body: {
             profile_id: user.id,
             name: formData.name,
-            description: formData.description,
+            description: formData.description.trim(), // Best practice: trim before sending
             price: parseFloat(formData.price),
             category: formData.category
           }
@@ -267,9 +276,10 @@ export default function ProviderProducts() {
                   />
                 </div>
                 <div className="md:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Description</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Description *</label>
                   <textarea
                     name="description"
+                    required // HTML5 Validation
                     rows={3}
                     value={formData.description}
                     onChange={handleInputChange}
