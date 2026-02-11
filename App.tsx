@@ -91,7 +91,17 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
+          {/* New Dynamic Route for Editing */}
+          <Route
+            path="match-assistant/:id"
+            element={
+              <ProtectedRoute allowedRole="SME">
+                <ProfileLayout>
+                  <SMEMatchSession />
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="provider-products"
             element={

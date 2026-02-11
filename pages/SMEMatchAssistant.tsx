@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Plus, Clock, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle } from 'lucide-react';
+import { Bot, Plus, Clock, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle, Pencil } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -156,7 +156,16 @@ export default function SMEMatchAssistant() {
                       </span>
 
                       <div className="flex items-center gap-2">
-                        {/* Delete Button */}
+                        {/* 1. Edit Button (Pencil) */}
+                        <Link
+                          to={`/match-assistant/${session.id}`}
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          title="Edit Session"
+                        >
+                          <Pencil size={18} />
+                        </Link>
+
+                        {/* 2. Delete Button */}
                         <button
                           onClick={() => setSessionToDelete(session)}
                           className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
@@ -165,7 +174,7 @@ export default function SMEMatchAssistant() {
                           <Trash2 size={18} />
                         </button>
 
-                        {/* View/Edit Button Placeholder */}
+                        {/* 3. Placeholder Button (Kept as requested) */}
                         <button className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
                           <ChevronRight size={20} />
                         </button>
