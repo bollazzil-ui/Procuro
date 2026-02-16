@@ -103,7 +103,7 @@ export default function SMEMatchSession() {
   const handleDelete = async () => {
     if(!confirm("Are you sure you want to delete this session?")) return;
     try {
-       await supabase.from('match_sessions').delete().eq('id', id);
+       await supabase.from('match_sessions').delete().eq('id', id).eq('profile_id', user.id);
        navigate('/match-assistant');
     } catch(err) { console.error(err); }
   };
