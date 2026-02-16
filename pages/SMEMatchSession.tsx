@@ -48,7 +48,7 @@ export default function SMEMatchSession() {
         console.error(err);
         setError("Failed to load session details.");
         // Optional: Redirect if session not found
-        // navigate('/match-assistant');
+        // navigate('/match-engine');
       } finally {
         setInitialLoading(false);
       }
@@ -109,7 +109,7 @@ export default function SMEMatchSession() {
       }
 
       // Redirect back to list on success
-      navigate('/match-assistant');
+      navigate('/match-engine');
 
     } catch (err: any) {
       console.error('Error saving session:', err);
@@ -136,7 +136,7 @@ export default function SMEMatchSession() {
         .eq('profile_id', user?.id);
 
        if (error) throw error;
-       navigate('/match-assistant');
+       navigate('/match-engine');
     } catch(err) {
       console.error(err);
       setError("Failed to delete session.");
@@ -157,7 +157,7 @@ export default function SMEMatchSession() {
     <div className="pt-24 pb-20 px-4 animate-fade-in min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto">
         <button
-          onClick={() => navigate('/match-assistant')}
+          onClick={() => navigate('/match-engine')}
           className="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-8 font-medium transition-colors"
         >
           <ArrowLeft size={18} /> Back to List
@@ -266,7 +266,7 @@ export default function SMEMatchSession() {
               <div className="pt-8 border-t border-slate-100 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => navigate('/match-assistant')}
+                  onClick={() => navigate('/match-engine')}
                   className="px-6 py-4 rounded-xl font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all"
                 >
                   Cancel

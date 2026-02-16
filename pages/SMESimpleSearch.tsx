@@ -15,7 +15,7 @@ interface SearchResult {
   } | null;
 }
 
-export default function SMEMatchSearch() {
+export default function SMESimpleSearch() {
   // --- State ---
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -107,7 +107,7 @@ export default function SMEMatchSearch() {
     <div className="pt-24 pb-20 px-8 animate-fade-in min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-blue-950">Match Search</h1>
+          <h1 className="text-3xl font-black text-blue-950">Simple Search</h1>
           <p className="text-slate-500 mt-2">Find and connect with the perfect partners using AI-driven filters.</p>
         </div>
 

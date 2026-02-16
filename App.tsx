@@ -12,8 +12,8 @@ import About from './pages/About';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import SMEProfile from './pages/SMEProfile';
-import SMEMatchSearch from './pages/SMEMatchSearch';
-import SMEMatchAssistant from './pages/SMEMatchAssistant'; // Import
+import SMESimpleSearch from './pages/SMESimpleSearch';
+import SMEMatchEngine from './pages/SMEMatchEngine'; // Import
 import SMEMatchSession from './pages/SMEMatchSession';     // Import
 import ProviderProfile from './pages/ProviderProfile';
 import ProviderProducts from './pages/ProviderProducts';
@@ -52,7 +52,7 @@ export default function App() {
             }
           />
           <Route
-            path="match-assistant/:id/results"
+            path="match-engine/:id/results"
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
@@ -76,24 +76,24 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
-                  <SMEMatchSearch />
+                  <SMESimpleSearch />
                 </ProfileLayout>
               </ProtectedRoute>
             }
           />
-          {/* New Match Assistant Routes */}
+          {/* New Match Engine Routes */}
           <Route
-            path="match-assistant"
+            path="match-engine"
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
-                  <SMEMatchAssistant />
+                  <SMEMatchEngine />
                 </ProfileLayout>
               </ProtectedRoute>
             }
           />
           <Route
-            path="match-assistant/new"
+            path="match-engine/new"
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
@@ -104,7 +104,7 @@ export default function App() {
           />
           {/* New Dynamic Route for Editing */}
           <Route
-            path="match-assistant/:id"
+            path="match-engine/:id"
             element={
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>

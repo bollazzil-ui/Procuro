@@ -13,7 +13,7 @@ interface SMEMatchSession {
   user_count: number;
 }
 
-export default function SMEMatchAssistant() {
+export default function SMEMatchEngine() {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<SMEMatchSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,11 +76,11 @@ export default function SMEMatchAssistant() {
         <div className="flex justify-between items-end mb-12">
           <div>
             <span className="text-blue-600 font-bold uppercase tracking-widest text-xs">AI Workspace</span>
-            <h1 className="text-3xl font-black text-blue-950 mt-2">Match Assistant</h1>
+            <h1 className="text-3xl font-black text-blue-950 mt-2">Match Engine</h1>
             <p className="text-slate-500 mt-2">Let our AI guide you to the perfect software solution.</p>
           </div>
           <Link
-            to="/match-assistant/new"
+            to="/match-engine/new"
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2"
           >
             <Plus size={18} /> New Session
@@ -94,10 +94,10 @@ export default function SMEMatchAssistant() {
           </div>
           <h2 className="text-2xl font-bold text-blue-950 mb-4">Start a new search session</h2>
           <p className="text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed">
-            Not sure exactly what you need? Our Match Assistant will ask you a few key questions about your goals, team size, and budget to recommend the best providers tailored to your situation.
+            Not sure exactly what you need? Our Match Engine will ask you a few key questions about your goals, team size, and budget to recommend the best providers tailored to your situation.
           </p>
           <Link
-            to="/match-assistant/new"
+            to="/match-engine/new"
             className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
           >
             Start Questionnaire <ChevronRight size={16} />
@@ -158,7 +158,7 @@ export default function SMEMatchAssistant() {
                       <div className="flex items-center gap-2">
                         {/* 1. Edit Button (Pencil) */}
                         <Link
-                          to={`/match-assistant/${session.id}`}
+                          to={`/match-engine/${session.id}`}
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                           title="Edit Session"
                         >
@@ -176,7 +176,7 @@ export default function SMEMatchAssistant() {
 
                         {/* 3. Placeholder Button (Kept as requested) */}
                         <Link
-                          to={`/match-assistant/${session.id}/results`}
+                          to={`/match-engine/${session.id}/results`}
                           className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm flex items-center justify-center"
                           title="View AI Matches"
                         >

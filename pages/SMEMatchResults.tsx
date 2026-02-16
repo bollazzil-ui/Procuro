@@ -49,7 +49,7 @@ export default function SMEMatchResults() {
   return (
     <div className="pt-24 pb-20 px-4 min-h-screen bg-slate-50 animate-fade-in">
       <div className="max-w-7xl mx-auto">
-        <Link to="/match-assistant" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-8 font-medium transition-colors">
+        <Link to="/match-engine" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-8 font-medium transition-colors">
           <ArrowLeft size={18} /> Back to Sessions
         </Link>
 

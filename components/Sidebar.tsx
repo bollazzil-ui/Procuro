@@ -19,9 +19,9 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
   ];
 
   if (role === 'SME') {
-    navItems.push({ name: 'Match Search', path: '/match-search', icon: <Search size={20} /> });
-    // Added Match Assistant Item
-    navItems.push({ name: 'Match Assistant', path: '/match-assistant', icon: <Bot size={20} /> });
+    navItems.push({ name: 'Simple Search', path: '/match-search', icon: <Search size={20} /> });
+    // Added Match Engine Item
+    navItems.push({ name: 'Match Engine', path: '/match-engine', icon: <Bot size={20} /> });
   }
 
   // Common for both roles (Matches)
