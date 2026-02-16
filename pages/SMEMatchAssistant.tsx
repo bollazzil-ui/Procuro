@@ -175,9 +175,13 @@ export default function SMEMatchAssistant() {
                         </button>
 
                         {/* 3. Placeholder Button (Kept as requested) */}
-                        <button className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                        <Link
+                          to={`/match-assistant/${session.id}/results`}
+                          className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm flex items-center justify-center"
+                          title="View AI Matches"
+                        >
                           <ChevronRight size={20} />
-                        </button>
+                        </Link>
                       </div>
                    </div>
                 </div>

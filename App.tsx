@@ -18,6 +18,7 @@ import SMEMatchSession from './pages/SMEMatchSession';     // Import
 import ProviderProfile from './pages/ProviderProfile';
 import ProviderProducts from './pages/ProviderProducts';
 import Matches from './pages/Matches';
+import SMEMatchResults from './pages/SMEMatchResults';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -46,6 +47,16 @@ export default function App() {
               <ProtectedRoute allowedRole="SME">
                 <ProfileLayout>
                   <SMEProfile/>
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="match-assistant/:id/results"
+            element={
+              <ProtectedRoute allowedRole="SME">
+                <ProfileLayout>
+                  <SMEMatchResults />
                 </ProfileLayout>
               </ProtectedRoute>
             }
