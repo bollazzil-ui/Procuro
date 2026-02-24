@@ -7,9 +7,6 @@ export default function ProviderPage() {
   return (
     <div className="pt-24 pb-20 animate-fade-in">
       <div className="max-w-7xl mx-auto px-4">
-        <Link to="/" className="flex items-center gap-2 text-blue-600 font-semibold mb-8 hover:gap-3 transition-all">
-          <ArrowLeft size={20} /> Back to Overview
-        </Link>
 
         <div className="bg-blue-950 rounded-[3rem] p-12 text-white relative overflow-hidden mb-24">
           <div className="absolute top-0 right-0 p-12 opacity-10">

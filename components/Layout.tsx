@@ -19,8 +19,8 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
 
-      {/* Hide Navbar on the home route */}
-      {!isHomeRoute && <Navbar />}
+      {/* Show the global Navbar on all pages */}
+      <Navbar />
 
       <main>
         {/* 'Outlet' is where the child route (Home, About, etc.) will render */}

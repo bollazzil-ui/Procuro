@@ -36,43 +36,6 @@ const MagneticButton = ({ children, className, onClick, ...props }: any) => {
   );
 };
 
-// --- Navbar: The Floating Island (Light Mode) ---
-const CinematicNav = () => {
-  const navRef = useRef(null);
-
-  useEffect(() => {
-    let ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        start: 'top -100',
-        onUpdate: (self) => {
-          if (self.direction === 1) {
-            gsap.to(navRef.current, { backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(16px)', border: '1px solid rgba(226, 232, 240, 1)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)', duration: 0.4 });
-          } else if (self.progress === 0) {
-            gsap.to(navRef.current, { backgroundColor: 'transparent', backdropFilter: 'blur(0px)', border: '1px solid rgba(255,255,255,0)', boxShadow: 'none', duration: 0.4 });
-          }
-        }
-      });
-    });
-    return () => ctx.revert();
-  }, []);
-
-  return (
-    <nav ref={navRef} className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-8 py-4 rounded-full flex items-center gap-12 transition-all">
-      <Link to="/" className="text-blue-900 font-bold text-xl tracking-tight flex items-center gap-2">
-        <div className="w-6 h-6 bg-blue-600 rounded-sm flex items-center justify-center text-white font-black text-xs">P</div>
-        Procuro
-      </Link>
-      <div className="hidden md:flex gap-8 text-sm font-medium text-slate-600 font-['Inter']">
-        <Link to="/sme" className="hover:text-blue-600 transition-colors">For SMEs</Link>
-        <Link to="/provider" className="hover:text-blue-600 transition-colors">For Providers</Link>
-      </div>
-      <Link to="/login" className="text-blue-600 text-sm font-bold hover:text-blue-800 transition-colors tracking-wide">
-        Sign In
-      </Link>
-    </nav>
-  );
-};
-
 // --- Artifact 1: Diagnostic Shuffler ---
 const DiagnosticShuffler = () => {
   const [items, setItems] = useState(["Analyzing 50+ vectors", "Matching tech stack", "Aligning budget"]);
@@ -216,7 +179,6 @@ export default function CinematicHome() {
   return (
     <div className="bg-slate-50 min-h-screen text-slate-900 font-['Inter'] selection:bg-blue-100 selection:text-blue-900">
       <div className="noise-overlay" />
-      <CinematicNav />
 
       {/* --- HERO: The Opening Shot --- */}
       <section ref={heroRef} className="relative h-[100dvh] flex items-end pb-24 px-8 md:px-16 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
