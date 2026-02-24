@@ -13,16 +13,23 @@ const Layout = () => {
     location.pathname === '/match-search' ||
     location.pathname === '/settings';
 
+  // Check if we are on the cinematic home page
+  const isHomeRoute = location.pathname === '/';
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-900">
-      <Navbar />
+
+      {/* Hide Navbar on the home route */}
+      {!isHomeRoute && <Navbar />}
+
       <main>
         {/* 'Outlet' is where the child route (Home, About, etc.) will render */}
         <Outlet />
       </main>
 
-      {/* Only render the global footer on public pages */}
-      {!isDashboardRoute && <Footer />}
+      {/* Hide Footer on dashboard routes AND the home route */}
+      {!isDashboardRoute && !isHomeRoute && <Footer />}
+
     </div>
   );
 };

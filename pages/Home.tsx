@@ -1,260 +1,335 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, Zap, CheckCircle2, ChevronRight, Globe, ShieldCheck, Sparkles } from 'lucide-react';
-import IndustryGrid from '../components/IndustryGrid'; // Import shared component
-import Pricing from '../components/Pricing';         // Import shared component
-import Team from '../components/Team';               // Import shared component
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
-// --- Local Sub-components for Home Page ---
+gsap.registerPlugin(ScrollTrigger);
 
-const Hero = () => {
+// --- Micro-Interaction: Magnetic Button ---
+const MagneticButton = ({ children, className, onClick, ...props }: any) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const button = buttonRef.current;
+    if (!button) return;
+
+    let ctx = gsap.context(() => {
+      button.addEventListener('mousemove', (e) => {
+        const rect = button.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        gsap.to(button, { x: x * 0.2, y: y * 0.2, scale: 1.03, duration: 0.6, ease: 'power3.out' });
+      });
+      button.addEventListener('mouseleave', () => {
+        gsap.to(button, { x: 0, y: 0, scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.3)' });
+      });
+    }, buttonRef);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-blue-50/50 to-white overflow-hidden relative">
-      <div className="max-w-4xl mx-auto text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold mb-6 animate-fade-in">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-          </span>
-          Swiss Quality AI Matching
-        </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold text-blue-950 mb-6 leading-tight">
-          Stop Searching. <br />
-          <span className="text-blue-600">Start Solving.</span>
-        </h1>
-        <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-          The intelligent B2B marketplace for Swiss SMEs. Find the right digital tools with AI-driven matching.
-        </p>
+    <button ref={buttonRef} onClick={onClick} className={`relative overflow-hidden group ${className}`} {...props}>
+      <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
+      <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] rounded-full" />
+    </button>
+  );
+};
 
-        <div className="relative max-w-2xl mx-auto group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl blur opacity-25 group-focus-within:opacity-50 transition duration-1000"></div>
-          <div className="relative bg-white border border-slate-200 rounded-2xl p-2 flex items-center shadow-xl">
-            <div className="pl-4 pr-2 text-blue-600">
-              <Search size={24} />
+// --- Navbar: The Floating Island (Light Mode) ---
+const CinematicNav = () => {
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        start: 'top -100',
+        onUpdate: (self) => {
+          if (self.direction === 1) {
+            gsap.to(navRef.current, { backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(16px)', border: '1px solid rgba(226, 232, 240, 1)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)', duration: 0.4 });
+          } else if (self.progress === 0) {
+            gsap.to(navRef.current, { backgroundColor: 'transparent', backdropFilter: 'blur(0px)', border: '1px solid rgba(255,255,255,0)', boxShadow: 'none', duration: 0.4 });
+          }
+        }
+      });
+    });
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <nav ref={navRef} className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-8 py-4 rounded-full flex items-center gap-12 transition-all">
+      <Link to="/" className="text-blue-900 font-bold text-xl tracking-tight flex items-center gap-2">
+        <div className="w-6 h-6 bg-blue-600 rounded-sm flex items-center justify-center text-white font-black text-xs">P</div>
+        Procuro
+      </Link>
+      <div className="hidden md:flex gap-8 text-sm font-medium text-slate-600 font-['Inter']">
+        <Link to="/sme" className="hover:text-blue-600 transition-colors">For SMEs</Link>
+        <Link to="/provider" className="hover:text-blue-600 transition-colors">For Providers</Link>
+      </div>
+      <Link to="/login" className="text-blue-600 text-sm font-bold hover:text-blue-800 transition-colors tracking-wide">
+        Sign In
+      </Link>
+    </nav>
+  );
+};
+
+// --- Artifact 1: Diagnostic Shuffler ---
+const DiagnosticShuffler = () => {
+  const [items, setItems] = useState(["Analyzing 50+ vectors", "Matching tech stack", "Aligning budget"]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setItems(prev => {
+        const newArr = [...prev];
+        const last = newArr.pop();
+        if(last) newArr.unshift(last);
+        return newArr;
+      });
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="bg-white border border-slate-100 shadow-xl rounded-[2rem] p-8 h-full flex flex-col justify-between overflow-hidden relative">
+      <div>
+        <h3 className="text-xl font-bold text-blue-950 mb-2 font-['Inter']">AI-Driven Matchmaking</h3>
+        <p className="text-slate-500 text-sm">Deterministic vendor alignment.</p>
+      </div>
+      <div className="relative h-32 mt-8">
+        {items.map((item, i) => (
+          <div
+            key={item}
+            className="absolute w-full bg-blue-50 border border-blue-100 p-4 rounded-xl shadow-sm transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] text-xs font-['JetBrains_Mono'] text-blue-700 font-semibold"
+            style={{
+              top: `${i * 12}px`,
+              scale: 1 - (i * 0.05),
+              opacity: 1 - (i * 0.2),
+              zIndex: 10 - i
+            }}
+          >
+            {item}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Artifact 2: Telemetry Typewriter ---
+const TelemetryTypewriter = () => {
+  const lines = ["> Fetching provider data...", "> Comparing core features...", "> Normalizing pricing models...", "> Match confidence: 98%."];
+  const [text, setText] = useState("");
+  const [lineIdx, setLineIdx] = useState(0);
+
+  useEffect(() => {
+    if (lineIdx >= lines.length) return;
+    let charIdx = 0;
+    const interval = setInterval(() => {
+      setText(lines.slice(0, lineIdx).join('\n') + (lineIdx > 0 ? '\n' : '') + lines[lineIdx].slice(0, charIdx));
+      charIdx++;
+      if (charIdx > lines[lineIdx].length) {
+        clearInterval(interval);
+        setTimeout(() => setLineIdx(p => p + 1), 800);
+      }
+    }, 40);
+    return () => clearInterval(interval);
+  }, [lineIdx]);
+
+  return (
+    <div className="bg-white border border-slate-100 shadow-xl rounded-[2rem] p-8 h-full flex flex-col relative">
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h3 className="text-xl font-bold text-blue-950 mb-2 font-['Inter']">Transparent Comparisons</h3>
+          <p className="text-slate-500 text-sm">Apples-to-apples evaluation.</p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Live Feed</span>
+        </div>
+      </div>
+      <div className="bg-slate-50 rounded-xl p-4 flex-1 border border-slate-200 font-['JetBrains_Mono'] text-[11px] text-slate-600 whitespace-pre-line leading-relaxed">
+        {text}<span className="inline-block w-2 h-3 bg-blue-600 ml-1 animate-pulse" />
+      </div>
+    </div>
+  );
+};
+
+// --- Main Page Component ---
+export default function CinematicHome() {
+  const heroRef = useRef(null);
+  const manifestoRef = useRef(null);
+  const stackRef = useRef(null);
+
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      // Hero Entrance
+      gsap.fromTo('.hero-anim',
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.2, stagger: 0.15, ease: 'power3.out', delay: 0.2 }
+      );
+
+      // Manifesto Reveal
+      gsap.fromTo('.manifesto-text',
+        { y: 40, opacity: 0 },
+        {
+          y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: 'power2.out',
+          scrollTrigger: { trigger: manifestoRef.current, start: 'top 70%' }
+        }
+      );
+
+      // Sticky Stacking Archive
+      const cards = gsap.utils.toArray('.protocol-card');
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: stackRef.current,
+          start: "top top",
+          end: `+=${cards.length * 100}%`,
+          pin: true,
+          scrub: 1,
+        }
+      });
+
+      // Build the Timeline: As the next card comes up, the previous card shrinks
+      cards.forEach((card: any, i) => {
+        if (i > 0) {
+          const previousCard = cards[i - 1];
+
+          // Use 'i' to sync the animations so they happen at the exact same scroll moment
+          tl.to(previousCard, {
+            scale: 0.9,
+            opacity: 0.4,
+            filter: 'blur(8px)',
+            y: "-10vh", // Push the background card slightly up
+            ease: "none"
+          }, i)
+          .to(card, {
+            y: "0vh", // Bring the new card to the center
+            ease: "none"
+          }, i);
+        }
+      });
+
+    });
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <div className="bg-slate-50 min-h-screen text-slate-900 font-['Inter'] selection:bg-blue-100 selection:text-blue-900">
+      <div className="noise-overlay" />
+      <CinematicNav />
+
+      {/* --- HERO: The Opening Shot --- */}
+      <section ref={heroRef} className="relative h-[100dvh] flex items-end pb-24 px-8 md:px-16 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
+        {/* Background Decorative Blurs */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-[#FFD700]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 max-w-4xl">
+          <div className="hero-anim inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
+            Swiss Quality AI Matching
+          </div>
+          <h1 className="hero-anim text-6xl md:text-[7rem] leading-[0.9] tracking-tighter mb-8 text-blue-950">
+            <span className="block font-bold">Swiss precision meets</span>
+            <span className="block font-['Playfair_Display'] italic text-blue-600 pr-4">Intelligence.</span>
+          </h1>
+          <p className="hero-anim text-lg md:text-xl text-slate-600 max-w-xl mb-12 font-light leading-relaxed">
+            The intelligent B2B marketplace for Swiss SMEs. Stop searching directories. Start integrating verified solutions.
+          </p>
+          <div className="hero-anim flex flex-wrap gap-4">
+             <Link to="/sme">
+                <MagneticButton className="bg-[#FFD700] text-blue-950 px-8 py-4 rounded-full font-bold text-sm tracking-widest uppercase shadow-lg shadow-[#FFD700]/20">
+                  Start Free Search
+                </MagneticButton>
+             </Link>
+             <Link to="/provider">
+                <MagneticButton className="bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:bg-slate-50">
+                  Become a Partner
+                </MagneticButton>
+             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* --- FEATURES: Interactive Functional Artifacts --- */}
+      <section className="py-32 px-8 md:px-16 max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <DiagnosticShuffler />
+        <TelemetryTypewriter />
+
+        {/* Artifact 3: Cursor Protocol Scheduler */}
+        <div className="bg-white border border-slate-100 shadow-xl rounded-[2rem] p-8 h-full flex flex-col justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-blue-950 mb-2 font-['Inter']">Swiss Quality Assurance</h3>
+            <p className="text-slate-500 text-sm">Rigorous provider verification.</p>
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-4">
+            <div className="border border-blue-200 bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center gap-3 text-center">
+              <ShieldCheck className="text-blue-600" size={24} />
+              <span className="text-xs font-bold text-blue-900">Commercial<br/>Registry</span>
             </div>
-            <input
-              type="text"
-              placeholder="Hi! I am your Procuro Assistant. What are you looking for today?"
-              className="w-full py-4 px-2 outline-none text-slate-700 placeholder:text-slate-400 text-lg font-medium"
-            />
-            <button className="hidden sm:block bg-[#FFD700] hover:bg-[#F0C800] text-blue-900 px-8 py-4 rounded-xl font-bold transition-all shadow-md">
-              Get AI Matches
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider self-center mr-2">Quick Search:</span>
-          {['CRM & Sales', 'Accounting & Finance', 'ERP Systems', 'IT Security'].map((tag) => (
-            <button key={tag} className="px-4 py-2 bg-white border border-slate-100 rounded-full text-sm font-medium text-slate-600 hover:border-blue-400 hover:text-blue-600 shadow-sm transition-all">
-              {tag}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Background decoration elements */}
-      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/4 -right-20 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl"></div>
-    </section>
-  );
-};
-
-const SplitSection = () => {
-  return (
-    <section className="py-20 px-4 max-w-7xl mx-auto">
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Left - SMEs */}
-        <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-100 hover:shadow-lg transition-shadow">
-          <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
-            <Zap size={28} />
-          </div>
-          <h2 className="text-3xl font-bold text-blue-950 mb-4">Find the Right Digital Tools</h2>
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Stop wading through endless lists. Get pre-vetted recommendations that fit your specific Swiss SME profile.
-          </p>
-          <ul className="space-y-4 mb-8">
-            {[
-              "AI-Driven Matchmaking",
-              "Transparent Comparisons",
-              "Free Access for SMEs"
-            ].map((feature) => (
-              <li key={feature} className="flex items-center gap-3 text-slate-700 font-medium">
-                <CheckCircle2 className="text-green-500" size={20} />
-                {feature}
-              </li>
-            ))}
-          </ul>
-          <Link to="/sme" className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2">
-            Start Free Search <ChevronRight size={20} />
-          </Link>
-        </div>
-
-        {/* Right - Providers */}
-        <div className="bg-blue-900 rounded-3xl p-8 md:p-12 text-white hover:shadow-2xl transition-shadow relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
-            <Users size={120} />
-          </div>
-          <div className="w-12 h-12 bg-blue-800 rounded-2xl flex items-center justify-center mb-6 text-blue-300">
-            <Globe size={28} />
-          </div>
-          <h2 className="text-3xl font-bold mb-4">Connect with Qualified Leads</h2>
-          <p className="text-blue-100 mb-8 leading-relaxed">
-            Join Switzerland's premier ecosystem. Reach SMEs actively looking for your specific IT solutions.
-          </p>
-          <ul className="space-y-4 mb-8">
-            {[
-              "Intent-Driven Leads",
-              "Targeted Acquisition",
-              "Lower Customer Acquisition Costs"
-            ].map((feature) => (
-              <li key={feature} className="flex items-center gap-3 text-blue-50 font-medium">
-                <CheckCircle2 className="text-blue-400" size={20} />
-                {feature}
-              </li>
-            ))}
-          </ul>
-          <Link to="/provider" className="w-full py-4 bg-[#FFD700] hover:bg-[#F0C800] text-blue-950 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
-            Become a Partner <ChevronRight size={20} />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// --- Main Home Component ---
-
-export default function Home() {
-  return (
-    <>
-      <Hero />
-
-      {/* Solution Showcase Section */}
-      <section className="py-10 px-4 -mt-10 mb-20 animate-fade-in relative z-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden">
-            <div className="grid lg:grid-cols-2 gap-0">
-
-              {/* Left: Value Proposition List */}
-              <div className="p-8 md:p-12 flex flex-col justify-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider mb-6 w-fit">
-                  <Sparkles size={14} />
-                  The Procuro Advantage
-                </div>
-                <h2 className="text-3xl font-bold text-blue-950 mb-6">
-                  Intelligent Matching. <br/>
-                  <span className="text-blue-600">Zero Guesswork.</span>
-                </h2>
-                <p className="text-slate-600 mb-8 leading-relaxed">
-                  We replace manual directories with an active AI engine that understands your business context.
-                </p>
-
-                <div className="space-y-6">
-                  {[
-                    {
-                      icon: <Zap className="text-amber-500" size={24} />,
-                      title: "Instant Precision",
-                      desc: "Our AI analyzes 50+ data points to match you with providers who fit your budget, tech stack, and industry."
-                    },
-                    {
-                      icon: <ShieldCheck className="text-green-500" size={24} />,
-                      title: "Verified Trust",
-                      desc: "Every provider is manually vetted for Swiss commercial registry status and financial stability."
-                    },
-                    {
-                      icon: <Users className="text-blue-500" size={24} />,
-                      title: "Direct Connection",
-                      desc: "Skip the cold calls. Get introduced directly to decision-makers who are ready to work."
-                    }
-                  ].map((item, i) => (
-                    <div key={i} className="flex gap-4 items-start group">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors border border-slate-100">
-                        {item.icon}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-blue-950 text-lg">{item.title}</h4>
-                        <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right: "Picture Example" (UI Mockup) */}
-              <div className="bg-slate-50 p-8 md:p-12 flex items-center justify-center relative overflow-hidden">
-                  {/* Background Decor */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-200/20 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
-
-                  {/* The Main UI Card (Simulating an App Screenshot) */}
-                  <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/60 p-6 z-10 transform transition-transform hover:scale-[1.02] duration-500">
-                    {/* Floating Badge */}
-                    <div className="absolute -top-4 -right-4 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 font-bold text-sm animate-bounce">
-                      <CheckCircle2 size={16} /> Best Match
-                    </div>
-
-                    {/* Card Header */}
-                    <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-6">
-                       <div className="w-16 h-16 bg-blue-950 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                         SSI
-                       </div>
-                       <div>
-                         <h3 className="font-bold text-blue-950 text-lg">SwissSolutions IT</h3>
-                         <div className="flex items-center gap-2 text-sm text-slate-500">
-                           <span>Zürich, CH</span>
-                           <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                           <span>50-200 Employees</span>
-                         </div>
-                       </div>
-                    </div>
-
-                    {/* Match Criteria Visualization */}
-                    <div className="space-y-4 mb-6">
-                      <div className="flex justify-between text-sm font-semibold text-slate-600 mb-1">
-                        <span>Tech Stack Fit</span>
-                        <span className="text-blue-600">98%</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className="bg-blue-600 w-[98%] h-full rounded-full"></div>
-                      </div>
-
-                      <div className="flex justify-between text-sm font-semibold text-slate-600 mb-1">
-                        <span>Industry Experience</span>
-                        <span className="text-blue-600">Perfect</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className="bg-blue-600 w-full h-full rounded-full"></div>
-                      </div>
-
-                      <div className="flex justify-between text-sm font-semibold text-slate-600 mb-1">
-                        <span>Budget Alignment</span>
-                        <span className="text-green-600">Within Range</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className="bg-green-500 w-[85%] h-full rounded-full"></div>
-                      </div>
-                    </div>
-
-                    {/* Action */}
-                    <button className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
-                      View Full Analysis <ChevronRight size={18} />
-                    </button>
-                  </div>
-
-                  {/* Background Stacked Card Effect */}
-                  <div className="absolute w-full max-w-md bg-white/50 rounded-2xl border border-slate-200 h-full top-4 left-4 -z-10 scale-95"></div>
-              </div>
-
+            <div className="border border-slate-100 bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center gap-3 text-center opacity-70">
+               <CheckCircle2 className="text-slate-400" size={24} />
+               <span className="text-xs font-bold text-slate-600">Financial<br/>Health</span>
             </div>
           </div>
         </div>
       </section>
 
-      <SplitSection />
-      <IndustryGrid />
-      <Pricing />
-      <Team />
-    </>
+      {/* --- PHILOSOPHY: The Manifesto (Dark Section) --- */}
+      <section ref={manifestoRef} className="py-40 px-8 relative overflow-hidden bg-blue-950 rounded-[3rem] mx-4 md:mx-8 mb-24 shadow-2xl">
+        <div className="absolute top-0 right-0 p-12 opacity-5">
+           <ShieldCheck size={400} />
+        </div>
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <p className="manifesto-text text-2xl md:text-3xl text-blue-200/60 font-light tracking-tight mb-8">
+            Most B2B platforms focus on: endless, unverified directories.
+          </p>
+          <p className="manifesto-text text-5xl md:text-7xl font-['Playfair_Display'] italic text-white leading-tight">
+            We focus on: <span className="text-[#FFD700]">curated exactitude.</span>
+          </p>
+        </div>
+      </section>
+
+      {/* --- PROTOCOL: Sticky Stacking Archive --- */}
+      <section ref={stackRef} className="h-[100vh] relative flex items-center justify-center bg-slate-50 overflow-hidden">
+        {[
+          { step: "01", title: "Profile Definition", desc: "Map your technical debt, budget constraints, and operational goals." },
+          { step: "02", title: "Algorithmic Search", desc: "Our engine filters thousands of verified Swiss providers to find exact matches." },
+          { step: "03", title: "Direct Introduction", desc: "Bypass the sales loop. Connect instantly with technical decision-makers." }
+        ].map((card, i) => (
+          <div
+            key={card.step}
+            className="protocol-card absolute w-[90%] max-w-3xl h-[60vh] bg-white border border-slate-100 rounded-[3rem] p-12 flex flex-col justify-center shadow-2xl"
+            style={{
+              zIndex: i,
+              // THIS IS THE FIX: Instantly put cards 2 and 3 out of view upon render
+              transform: i === 0 ? 'translateY(0)' : 'translateY(100vh)'
+            }}
+          >
+            <div className="text-blue-600 font-bold uppercase tracking-widest text-sm mb-6 bg-blue-50 w-fit px-4 py-1 rounded-full">STEP // {card.step}</div>
+            <h2 className="text-4xl md:text-6xl font-black text-blue-950 mb-6 tracking-tight">{card.title}</h2>
+            <p className="text-xl text-slate-500 max-w-lg leading-relaxed">{card.desc}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* --- CTA / GET STARTED --- */}
+      <section className="py-40 px-8 flex justify-center bg-slate-50">
+        <div className="bg-blue-600 rounded-[3rem] p-16 md:p-24 text-center max-w-4xl w-full relative overflow-hidden group shadow-2xl shadow-blue-600/20">
+          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-8 relative z-10">
+            Ready to upgrade your infrastructure?
+          </h2>
+          <Link to="/sme" className="relative z-10 inline-block">
+             <button className="bg-[#FFD700] text-blue-950 px-10 py-5 rounded-full font-bold tracking-widest uppercase text-sm hover:scale-105 transition-transform duration-500 flex items-center gap-3 mx-auto shadow-lg">
+               Start Free Search <ArrowRight size={18} />
+             </button>
+          </Link>
+        </div>
+      </section>
+    </div>
   );
 }
