@@ -121,7 +121,7 @@ const TelemetryTypewriter = () => {
 export default function CinematicHome() {
   const heroRef = useRef(null);
   const manifestoRef = useRef(null);
-  const stackRef = useRef(null);
+  const protocolRef = useRef(null);
 
   useEffect(() => {
     let ctx = gsap.context(() => {
@@ -140,37 +140,14 @@ export default function CinematicHome() {
         }
       );
 
-      // Sticky Stacking Archive
-      const cards = gsap.utils.toArray('.protocol-card');
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: stackRef.current,
-          start: "top top",
-          end: `+=${cards.length * 100}%`,
-          pin: true,
-          scrub: 1,
+      // New Protocol Cards Stagger
+      gsap.fromTo('.protocol-card',
+        { y: 50, opacity: 0 },
+        {
+          y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: 'power2.out',
+          scrollTrigger: { trigger: protocolRef.current, start: 'top 75%' }
         }
-      });
-
-      // Build the Timeline: As the next card comes up, the previous card shrinks
-      cards.forEach((card: any, i) => {
-        if (i > 0) {
-          const previousCard = cards[i - 1];
-
-          // Use 'i' to sync the animations so they happen at the exact same scroll moment
-          tl.to(previousCard, {
-            scale: 0.9,
-            opacity: 0.4,
-            filter: 'blur(8px)',
-            y: "-10vh", // Push the background card slightly up
-            ease: "none"
-          }, i)
-          .to(card, {
-            y: "0vh", // Bring the new card to the center
-            ease: "none"
-          }, i);
-        }
-      });
+      );
 
     });
     return () => ctx.revert();
@@ -255,27 +232,37 @@ export default function CinematicHome() {
         </div>
       </section>
 
-      {/* --- PROTOCOL: Sticky Stacking Archive --- */}
-      <section ref={stackRef} className="h-[100vh] relative flex items-center justify-center bg-slate-50 overflow-hidden">
-        {[
-          { step: "01", title: "Profile Definition", desc: "Map your technical debt, budget constraints, and operational goals." },
-          { step: "02", title: "Algorithmic Search", desc: "Our engine filters thousands of verified Swiss providers to find exact matches." },
-          { step: "03", title: "Direct Introduction", desc: "Bypass the sales loop. Connect instantly with technical decision-makers." }
-        ].map((card, i) => (
-          <div
-            key={card.step}
-            className="protocol-card absolute w-[90%] max-w-3xl h-[60vh] bg-white border border-slate-100 rounded-[3rem] p-12 flex flex-col justify-center shadow-2xl"
-            style={{
-              zIndex: i,
-              // THIS IS THE FIX: Instantly put cards 2 and 3 out of view upon render
-              transform: i === 0 ? 'translateY(0)' : 'translateY(100vh)'
-            }}
-          >
-            <div className="text-blue-600 font-bold uppercase tracking-widest text-sm mb-6 bg-blue-50 w-fit px-4 py-1 rounded-full">STEP // {card.step}</div>
-            <h2 className="text-4xl md:text-6xl font-black text-blue-950 mb-6 tracking-tight">{card.title}</h2>
-            <p className="text-xl text-slate-500 max-w-lg leading-relaxed">{card.desc}</p>
-          </div>
-        ))}
+      {/* --- PROTOCOL: Stylish Grid Layout --- */}
+      <section ref={protocolRef} className="py-32 px-8 md:px-16 max-w-[1600px] mx-auto">
+        <div className="text-center mb-20">
+          <span className="text-blue-600 font-bold uppercase tracking-widest text-xs">The Protocol</span>
+          <h2 className="text-4xl md:text-5xl font-black text-blue-950 mt-4 mb-6">How Procuro Works</h2>
+          <p className="text-slate-500 max-w-2xl mx-auto text-lg">
+            A streamlined approach to discovering and implementing verified IT solutions for your business.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          {/* Subtle connecting line behind cards (visible on desktop) */}
+          <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-slate-200 z-0 border-t border-dashed border-slate-300"></div>
+
+          {[
+            { step: "01", title: "Profile Definition", desc: "Map your technical debt, budget constraints, and operational goals." },
+            { step: "02", title: "Algorithmic Search", desc: "Our engine filters thousands of verified Swiss providers to find exact matches." },
+            { step: "03", title: "Direct Introduction", desc: "Bypass the sales loop. Connect instantly with technical decision-makers." }
+          ].map((card) => (
+            <div
+              key={card.step}
+              className="protocol-card relative z-10 bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:border-blue-200 transition-all duration-500 group"
+            >
+              <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-black mb-8 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500 shadow-sm border border-blue-100 group-hover:border-transparent">
+                {card.step}
+              </div>
+              <h3 className="text-2xl font-bold text-blue-950 mb-4">{card.title}</h3>
+              <p className="text-slate-500 leading-relaxed">{card.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* --- CTA / GET STARTED --- */}
