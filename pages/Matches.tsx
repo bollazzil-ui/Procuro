@@ -153,7 +153,7 @@ export default function Matches() {
   };
 
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-slate-50">
+    <div className="pt-36 pb-20 min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">

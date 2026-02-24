@@ -120,7 +120,7 @@ export default function RegisterPage() {
 
   if (successMode) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center pt-24 pb-20 px-4 bg-slate-50">
+      <div className="min-h-[80vh] flex items-center justify-center pt-36 pb-20 px-4 bg-slate-50">
         <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl p-10 border border-slate-100 text-center">
           <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle size={32} />
@@ -139,7 +139,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center pt-24 pb-20 px-4 bg-slate-50">
+    <div className="min-h-[80vh] flex items-center justify-center pt-36 pb-20 px-4 bg-slate-50">
       <div className="max-w-2xl w-full bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-10 border border-slate-100">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-slate-900">Create Account</h2>

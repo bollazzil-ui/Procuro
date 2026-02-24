@@ -5,7 +5,7 @@ import Pricing from '../components/Pricing'; // Import shared component
 
 export default function ProviderPage() {
   return (
-    <div className="pt-24 pb-20 animate-fade-in">
+    <div className="pt-36 pb-20 animate-fade-in">
       <div className="max-w-7xl mx-auto px-4">
 
         <div className="bg-blue-950 rounded-[3rem] p-12 text-white relative overflow-hidden mb-24">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake, Bot } from 'lucide-react'; // Added Bot icon
+import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake, Bot } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -20,11 +20,9 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
 
   if (role === 'SME') {
     navItems.push({ name: 'Simple Search', path: '/match-search', icon: <Search size={20} /> });
-    // Added Match Engine Item
     navItems.push({ name: 'Match Engine', path: '/match-engine', icon: <Bot size={20} /> });
   }
 
-  // Common for both roles (Matches)
   navItems.push({ name: 'My Matches', path: '/matches', icon: <Handshake size={20} /> });
 
   if (role === 'PROVIDER') {
@@ -35,7 +33,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-slate-100 transition-all duration-300 z-40 flex flex-col ${
+      // Changed from top-16 and h-[calc(100vh-4rem)] to top-36 and h-[calc(100vh-9rem)]
+      className={`fixed top-36 left-0 h-[calc(100vh-9rem)] bg-white border-r border-slate-100 transition-all duration-300 z-40 flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >

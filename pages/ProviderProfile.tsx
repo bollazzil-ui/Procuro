@@ -39,7 +39,7 @@ export default function ProviderProfile() {
   }, [user]);
 
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-slate-50">
+    <div className="pt-36 pb-20 min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="bg-blue-900 rounded-[2rem] p-8 md:p-12 text-white mb-12 shadow-xl">

@@ -71,7 +71,7 @@ export default function SMEMatchEngine() {
   };
 
   return (
-    <div className="pt-24 pb-20 px-8 animate-fade-in min-h-screen bg-slate-50">
+    <div className="pt-36 pb-20 px-8 animate-fade-in min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-end mb-12">
           <div>

@@ -4,7 +4,7 @@ import Team from '../components/Team'; // Import shared component
 
 export default function AboutPage() {
   return (
-    <div className="pt-24 pb-20 animate-fade-in">
+    <div className="pt-36 pb-20 animate-fade-in">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
           <span className="text-blue-600 font-bold uppercase tracking-widest text-xs">Our Story</span>

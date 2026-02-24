@@ -191,7 +191,7 @@ export default function ProviderProducts() {
   };
 
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-slate-50 relative">
+    <div className="pt-36 pb-20 min-h-screen bg-slate-50 relative">
       <div className="max-w-7xl mx-auto px-4">
 
         {/* Header Section */}
