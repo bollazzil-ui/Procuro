@@ -104,7 +104,7 @@ export default function SMESimpleSearch() {
   };
 
   return (
-    <div className="pt-36 pb-20 animate-fade-in min-h-screen bg-slate-50">
+    <div className="pt-36 pb-20 px-4 md:px-8 animate-fade-in min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-black text-blue-950">Simple Search</h1>
