@@ -1,6 +1,7 @@
+// pages/SMEMatchEngine.tsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Plus, Clock, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle, Pencil } from 'lucide-react';
+import { Bot, Plus, Sparkles, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle, Pencil } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -87,27 +88,29 @@ export default function SMEMatchEngine() {
           </Link>
         </div>
 
-        {/* Intro Card */}
-        <div className="bg-white rounded-[2rem] p-10 border border-slate-100 shadow-sm text-center mb-12">
-          <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Bot size={40} />
+        {/* Intro Card - ONLY visible if not loading AND no sessions exist */}
+        {!loading && sessions.length === 0 && (
+          <div className="bg-white rounded-[2rem] p-10 border border-slate-100 shadow-sm text-center mb-12">
+            <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Bot size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-blue-950 mb-4">Start a new search session</h2>
+            <p className="text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed">
+              Not sure exactly what you need? Our Match Engine will ask you a few key questions about your goals, team size, and budget to recommend the best providers tailored to your situation.
+            </p>
+            <Link
+              to="/match-engine/new"
+              className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
+            >
+              Start Questionnaire <ChevronRight size={16} />
+            </Link>
           </div>
-          <h2 className="text-2xl font-bold text-blue-950 mb-4">Start a new search session</h2>
-          <p className="text-slate-500 max-w-xl mx-auto mb-8 leading-relaxed">
-            Not sure exactly what you need? Our Match Engine will ask you a few key questions about your goals, team size, and budget to recommend the best providers tailored to your situation.
-          </p>
-          <Link
-            to="/match-engine/new"
-            className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
-          >
-            Start Questionnaire <ChevronRight size={16} />
-          </Link>
-        </div>
+        )}
 
-        {/* Recent Sessions */}
+        {/* Open Sessions */}
         <div className="mb-6">
           <h3 className="font-bold text-blue-950 mb-6 flex items-center gap-2">
-            <Clock size={18} className="text-slate-400" /> Recent Sessions
+            <Sparkles size={18} className="text-blue-500" /> Open Sessions
           </h3>
 
           {/* Error Message for Deletion */}
@@ -124,7 +127,7 @@ export default function SMEMatchEngine() {
              </div>
           ) : sessions.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
-              No previous sessions found. Start your first search above!
+              No open sessions found. Start your first search above!
             </div>
           ) : (
             <div className="grid gap-4">
@@ -174,7 +177,7 @@ export default function SMEMatchEngine() {
                           <Trash2 size={18} />
                         </button>
 
-                        {/* 3. Placeholder Button (Kept as requested) */}
+                        {/* 3. Placeholder Button */}
                         <Link
                           to={`/match-engine/${session.id}/results`}
                           className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm flex items-center justify-center"
