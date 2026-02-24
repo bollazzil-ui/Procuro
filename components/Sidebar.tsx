@@ -35,7 +35,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
       <aside
         className={`fixed top-28 left-0 h-[calc(100vh-7rem)] z-40 flex flex-col transition-all duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
         bg-white/70 backdrop-blur-xl shadow-[8px_8px_30px_rgb(0,0,0,0.04)] border border-white/50 border-l-0 rounded-r-3xl
-        ${isCollapsed ? '-translate-x-full md:translate-x-0 w-64 md:w-[72px]' : 'translate-x-0 w-64'}`}
+        ${isCollapsed ? '-translate-x-full md:translate-x-0 w-56 md:w-[72px]' : 'translate-x-0 w-56'}`}
       >
       {/* Collapse Toggle Button - Floating on the right edge */}
       <button
