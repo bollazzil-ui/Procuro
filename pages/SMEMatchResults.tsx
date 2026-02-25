@@ -81,9 +81,9 @@ export default function SMEMatchResults() {
         ) : (
           <div className="grid gap-6">
             {results.map((product) => (
-              <div key={product.product_id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-300 hover:shadow-lg transition-all group relative overflow-hidden">
+              <div key={product.product_id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-300 hover:shadow-lg transition-all group relative overflow-hidden flex flex-col">
 
-                {/* Match Score Badge */}
+                {/* Match Score Badge (Absolutely positioned) */}
                 <div className="absolute top-6 right-6 flex flex-col items-end">
                    <div className="flex items-center gap-1 text-green-600 font-black text-lg bg-green-50 px-3 py-1 rounded-lg">
                      <CheckCircle2 size={18} />
@@ -91,42 +91,50 @@ export default function SMEMatchResults() {
                    </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-6 pr-32">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase tracking-wider">
-                         {product.product_category || 'Software'}
-                       </span>
-                    </div>
-
-                    <h3 className="text-2xl font-bold text-blue-950 mb-2">{product.product_name}</h3>
-
-                    <div className="flex items-center gap-2 text-slate-500 text-sm mb-4">
-                      <Building2 size={16} />
-                      <span className="font-semibold text-blue-900">{product.provider_name}</span>
-                      {product.provider_city && (
-                        <>
-                          <span className="text-slate-300">•</span>
-                          <MapPin size={14} />
-                          <span>{product.provider_city}</span>
-                        </>
-                      )}
-                    </div>
-
-                    <p className="text-slate-600 leading-relaxed mb-6 max-w-3xl">
-                      {product.product_description}
-                    </p>
-
-                    <div className="flex items-center gap-4 border-t border-slate-50 pt-4">
-                       <div className="font-bold text-blue-950 text-lg">
-                         CHF {product.product_price}
-                       </div>
-                       <button className="ml-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-md">
-                         View Details
-                       </button>
-                    </div>
+                {/* Main Content Area - Keeps pr-32 to avoid text overlapping the badge */}
+                <div className="pr-32 flex-grow">
+                  <div className="flex items-center gap-3 mb-2">
+                     <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase tracking-wider">
+                       {product.product_category || 'Software'}
+                     </span>
                   </div>
+
+                  <h3 className="text-2xl font-bold text-blue-950 mb-2">{product.product_name}</h3>
+
+                  <div className="flex items-center gap-2 text-slate-500 text-sm mb-4">
+                    <Building2 size={16} />
+                    <span className="font-semibold text-blue-900">{product.provider_name}</span>
+                    {product.provider_city && (
+                      <>
+                        <span className="text-slate-300">•</span>
+                        <MapPin size={14} />
+                        <span>{product.provider_city}</span>
+                      </>
+                    )}
+                  </div>
+
+                  <p className="text-slate-600 leading-relaxed mb-6 max-w-3xl">
+                    {product.product_description}
+                  </p>
                 </div>
+
+                {/* Footer Area - Moved outside the pr-32 wrapper so it stretches full width */}
+                <div className="flex items-center gap-4 border-t border-slate-50 pt-4 w-full mt-auto">
+                   <div className="font-bold text-blue-950 text-lg">
+                     CHF {product.product_price}
+                   </div>
+
+                   {/* Button Container - ml-auto pushes these directly under the right-aligned badge */}
+                   <div className="ml-auto flex gap-3">
+                     <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-md">
+                       View Details
+                     </button>
+                     <button className="bg-[#FFD700] hover:bg-[#F0C800] text-blue-950 px-6 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-2">
+                       Match
+                     </button>
+                   </div>
+                </div>
+
               </div>
             ))}
           </div>
