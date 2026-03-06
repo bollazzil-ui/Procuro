@@ -133,25 +133,31 @@ export default function SMEMatchEngine() {
             <div className="grid gap-4">
               {sessions.map((session) => (
                 <div key={session.id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all flex flex-col md:flex-row justify-between md:items-center gap-4 group">
-                   <div className="flex items-start gap-4">
+
+                   {/* Left Side: Purpose & Details (Added flex-1 and min-w-0 for truncating) */}
+                   <div className="flex items-start gap-4 flex-1 min-w-0">
                       <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
                         <FileText size={20} />
                       </div>
-                      <div>
-                        <h4 className="font-bold text-blue-950 line-clamp-1">{session.purpose}</h4>
+                      {/* Added min-w-0 to allow text to truncate properly instead of pushing layout */}
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-blue-950 line-clamp-1 break-words" title={session.purpose}>
+                          {session.purpose}
+                        </h4>
                         <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 shrink-0">
                             <Calendar size={12} /> {new Date(session.created_at).toLocaleDateString('de-CH')}
                           </span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span>{session.user_count} User(s)</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0"></span>
+                          <span className="shrink-0">{session.user_count} User(s)</span>
                         </div>
                       </div>
                    </div>
 
-                   <div className="flex items-center justify-between md:justify-end gap-4 min-w-[150px]">
+                   {/* Right Side: Status & Actions (Added shrink-0 to prevent compression) */}
+                   <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 min-w-[150px]">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${
-                        session.status === 'completed'
+                        session.status?.toLowerCase() === 'open'
                           ? 'bg-green-50 text-green-700 border-green-200'
                           : 'bg-amber-50 text-amber-600 border-amber-100'
                       }`}>
@@ -177,7 +183,7 @@ export default function SMEMatchEngine() {
                           <Trash2 size={18} />
                         </button>
 
-                        {/* 3. Placeholder Button */}
+                        {/* 3. Match Results Button */}
                         <Link
                           to={`/match-engine/${session.id}/results`}
                           className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm flex items-center justify-center"
