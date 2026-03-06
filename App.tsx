@@ -13,12 +13,13 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SMEProfile from './pages/SMEProfile';
 import SMESimpleSearch from './pages/SMESimpleSearch';
-import SMEMatchEngine from './pages/SMEMatchEngine'; // Import
-import SMEMatchSession from './pages/SMEMatchSession';     // Import
+import SMEMatchEngine from './pages/SMEMatchEngine';
+import SMEMatchSession from './pages/SMEMatchSession';
 import ProviderProfile from './pages/ProviderProfile';
 import ProviderProducts from './pages/ProviderProducts';
 import Matches from './pages/Matches';
 import SMEMatchResults from './pages/SMEMatchResults';
+import Notifications from './pages/Notifications'; // Newly added import
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -81,7 +82,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/* New Match Engine Routes */}
+          {/* Match Engine Routes */}
           <Route
             path="match-engine"
             element={
@@ -102,7 +103,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/* New Dynamic Route for Editing */}
+          {/* Dynamic Route for Editing */}
           <Route
             path="match-engine/:id"
             element={
@@ -129,6 +130,18 @@ export default function App() {
               <ProtectedRoute>
                 <ProfileLayout>
                   <Matches />
+                </ProfileLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* New Notifications Route */}
+          <Route
+            path="notifications"
+            element={
+              <ProtectedRoute>
+                <ProfileLayout>
+                  <Notifications />
                 </ProfileLayout>
               </ProtectedRoute>
             }

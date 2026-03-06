@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake, Bot } from 'lucide-react';
+import { LayoutDashboard, Search, Settings, LogOut, ChevronLeft, Menu, Package, Handshake, Bot , Bell} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -28,6 +28,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
   if (role === 'PROVIDER') {
     navItems.push({ name: 'My Products', path: '/provider-products', icon: <Package size={20} /> });
   }
+
+  navItems.push({ name: 'Notifications', path: '/notifications', icon: <Bell size={20} /> });
 
   navItems.push({ name: 'Settings', path: '/settings', icon: <Settings size={20} /> });
 
