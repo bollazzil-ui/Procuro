@@ -1,7 +1,7 @@
 // pages/SMEMatchEngine.tsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Plus, Sparkles, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle, Pencil } from 'lucide-react';
+import { Bot, Plus, Sparkles, ChevronRight, Loader2, Calendar, FileText, Trash2, AlertCircle, Pencil, Archive } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -71,6 +71,10 @@ export default function SMEMatchEngine() {
     }
   };
 
+  // Separate sessions based on their status
+  const openSessions = sessions.filter(s => s.status?.toLowerCase() !== 'closed');
+  const closedSessions = sessions.filter(s => s.status?.toLowerCase() === 'closed');
+
   return (
     <div className="pt-36 pb-20 px-8 animate-fade-in min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto">
@@ -88,7 +92,7 @@ export default function SMEMatchEngine() {
           </Link>
         </div>
 
-        {/* Intro Card - ONLY visible if not loading AND no sessions exist */}
+        {/* Intro Card - ONLY visible if not loading AND no sessions exist at all */}
         {!loading && sessions.length === 0 && (
           <div className="bg-white rounded-[2rem] p-10 border border-slate-100 shadow-sm text-center mb-12">
             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -108,40 +112,109 @@ export default function SMEMatchEngine() {
         )}
 
         {/* Open Sessions */}
-        <div className="mb-6">
-          <h3 className="font-bold text-blue-950 mb-6 flex items-center gap-2">
-            <Sparkles size={18} className="text-blue-500" /> Open Sessions
-          </h3>
+        {sessions.length > 0 && (
+          <div className="mb-12">
+            <h3 className="font-bold text-blue-950 mb-6 flex items-center gap-2">
+              <Sparkles size={18} className="text-blue-500" /> Open Sessions
+            </h3>
 
-          {/* Error Message for Deletion */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
-              <AlertCircle size={20} />
-              <span className="text-sm font-medium">{error}</span>
-            </div>
-          )}
+            {/* Error Message for Deletion */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100">
+                <AlertCircle size={20} />
+                <span className="text-sm font-medium">{error}</span>
+              </div>
+            )}
 
-          {loading ? (
-             <div className="flex justify-center py-8">
-               <Loader2 className="animate-spin text-blue-600" size={24} />
-             </div>
-          ) : sessions.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
-              No open sessions found. Start your first search above!
-            </div>
-          ) : (
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="animate-spin text-blue-600" size={24} />
+              </div>
+            ) : openSessions.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
+                No open sessions found. Start your first search above!
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {openSessions.map((session) => (
+                  <div key={session.id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all flex flex-col md:flex-row justify-between md:items-center gap-4 group">
+
+                    {/* Left Side: Purpose & Details */}
+                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                          <FileText size={20} />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-blue-950 line-clamp-1 break-words" title={session.purpose}>
+                            {session.purpose}
+                          </h4>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
+                            <span className="flex items-center gap-1 shrink-0">
+                              <Calendar size={12} /> {new Date(session.created_at).toLocaleDateString('de-CH')}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0"></span>
+                            <span className="shrink-0">{session.user_count} User(s)</span>
+                          </div>
+                        </div>
+                    </div>
+
+                    {/* Right Side: Status & Actions */}
+                    <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 min-w-[150px]">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold border uppercase bg-green-50 text-green-700 border-green-200">
+                          {session.status || 'open'}
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/match-engine/${session.id}`}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                            title="Edit Session"
+                          >
+                            <Pencil size={18} />
+                          </Link>
+
+                          <button
+                            onClick={() => setSessionToDelete(session)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Delete Session"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+
+                          <Link
+                            to={`/match-engine/${session.id}/results`}
+                            className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm flex items-center justify-center"
+                            title="View AI Matches"
+                          >
+                            <ChevronRight size={20} />
+                          </Link>
+                        </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Closed Sessions */}
+        {!loading && closedSessions.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-bold text-slate-500 mb-6 flex items-center gap-2">
+              <Archive size={18} className="text-slate-400" /> Closed Sessions
+            </h3>
+
             <div className="grid gap-4">
-              {sessions.map((session) => (
-                <div key={session.id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all flex flex-col md:flex-row justify-between md:items-center gap-4 group">
+              {closedSessions.map((session) => (
+                <div key={session.id} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4 opacity-75">
 
-                   {/* Left Side: Purpose & Details (Added flex-1 and min-w-0 for truncating) */}
-                   <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                  {/* Left Side: Purpose & Details */}
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                      <div className="w-12 h-12 bg-slate-200 text-slate-500 rounded-xl flex items-center justify-center shrink-0">
                         <FileText size={20} />
                       </div>
-                      {/* Added min-w-0 to allow text to truncate properly instead of pushing layout */}
                       <div className="min-w-0">
-                        <h4 className="font-bold text-blue-950 line-clamp-1 break-words" title={session.purpose}>
+                        <h4 className="font-bold text-slate-700 line-clamp-1 break-words" title={session.purpose}>
                           {session.purpose}
                         </h4>
                         <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
@@ -152,52 +225,19 @@ export default function SMEMatchEngine() {
                           <span className="shrink-0">{session.user_count} User(s)</span>
                         </div>
                       </div>
-                   </div>
+                  </div>
 
-                   {/* Right Side: Status & Actions (Added shrink-0 to prevent compression) */}
-                   <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 min-w-[150px]">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${
-                        session.status?.toLowerCase() === 'open'
-                          ? 'bg-green-50 text-green-700 border-green-200'
-                          : 'bg-amber-50 text-amber-600 border-amber-100'
-                      }`}>
+                  {/* Right Side: Status Only */}
+                  <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 min-w-[150px]">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold border uppercase bg-slate-200 text-slate-600 border-slate-300">
                         {session.status}
                       </span>
-
-                      <div className="flex items-center gap-2">
-                        {/* 1. Edit Button (Pencil) */}
-                        <Link
-                          to={`/match-engine/${session.id}`}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                          title="Edit Session"
-                        >
-                          <Pencil size={18} />
-                        </Link>
-
-                        {/* 2. Delete Button */}
-                        <button
-                          onClick={() => setSessionToDelete(session)}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          title="Delete Session"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-
-                        {/* 3. Match Results Button */}
-                        <Link
-                          to={`/match-engine/${session.id}/results`}
-                          className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm flex items-center justify-center"
-                          title="View AI Matches"
-                        >
-                          <ChevronRight size={20} />
-                        </Link>
-                      </div>
-                   </div>
+                  </div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
