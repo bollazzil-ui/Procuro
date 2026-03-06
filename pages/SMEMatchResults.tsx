@@ -1,7 +1,9 @@
+// pages/SMEMatchResults.tsx
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Loader2, Building2, MapPin, CheckCircle2, Sparkles, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface RecommendedProduct {
   product_id: string;
@@ -16,9 +18,15 @@ interface RecommendedProduct {
 
 export default function SMEMatchResults() {
   const { id } = useParams(); // Session ID
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const [results, setResults] = useState<RecommendedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Track which product is currently being matched to show a loading state on that specific button
+  const [matchingId, setMatchingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) fetchRecommendations();
@@ -43,6 +51,43 @@ export default function SMEMatchResults() {
       setError('Could not load AI recommendations. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMatch = async (productId: string) => {
+    if (!user || !id) return;
+
+    try {
+      setMatchingId(productId);
+      setError(null);
+
+      // 1. Insert into matches table
+      const { error: matchError } = await supabase
+        .from('matches')
+        .insert({
+          requester_profile_id: user.id,
+          product_id: productId,
+          status: 'pending' // Default starting status
+        });
+
+      if (matchError) throw matchError;
+
+      // 2. Update the specific match_session status to "Closed"
+      const { error: sessionUpdateError } = await supabase
+        .from('match_sessions')
+        .update({ status: 'Closed' })
+        .eq('id', id);
+
+      if (sessionUpdateError) throw sessionUpdateError;
+
+      // 3. Navigate to the matches page to see the new connection
+      navigate('/matches');
+
+    } catch (err: any) {
+      console.error('Error creating match:', err);
+      setError('Failed to create match. Please try again.');
+    } finally {
+      setMatchingId(null);
     }
   };
 
@@ -129,8 +174,16 @@ export default function SMEMatchResults() {
                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-md">
                        View Details
                      </button>
-                     <button className="bg-[#FFD700] hover:bg-[#F0C800] text-blue-950 px-6 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-2">
-                       Match
+                     <button
+                       onClick={() => handleMatch(product.product_id)}
+                       disabled={matchingId === product.product_id}
+                       className="bg-[#FFD700] hover:bg-[#F0C800] text-blue-950 px-6 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-70"
+                     >
+                       {matchingId === product.product_id ? (
+                         <><Loader2 className="animate-spin" size={18} /> Matching...</>
+                       ) : (
+                         'Match'
+                       )}
                      </button>
                    </div>
                 </div>
