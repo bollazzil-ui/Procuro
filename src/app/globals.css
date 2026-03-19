@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Agent chat animation */
+@keyframes pulse-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: pulse-dot 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
