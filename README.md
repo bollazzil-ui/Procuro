@@ -101,7 +101,7 @@ The agent implementation stubs are in `backend/` and TypeScript types in `src/ty
 
 2. **Configure environment**
    ```bash
-   cp .env.local.example .env.local
+   cp .env.local. .env.local
    ```
    Fill in your Supabase project URL and anon key.
 
