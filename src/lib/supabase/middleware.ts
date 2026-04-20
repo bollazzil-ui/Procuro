@@ -18,10 +18,12 @@ export async function updateSession(request: NextRequest) {
           );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) => {
-            const sessionOptions = { ...(options ?? {}) };
-            delete sessionOptions.maxAge;
-            delete sessionOptions.expires;
-            supabaseResponse.cookies.set(name, value, sessionOptions);
+            const cookieOptions = { ...(options ?? {}) };
+            if (value) {
+              delete cookieOptions.maxAge;
+              delete cookieOptions.expires;
+            }
+            supabaseResponse.cookies.set(name, value, cookieOptions);
           });
         },
       },
