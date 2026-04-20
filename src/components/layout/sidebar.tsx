@@ -17,6 +17,8 @@ import {
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useAuthStore } from "@/stores/auth-store";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -30,11 +32,18 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const resetAuth = useAuthStore((s) => s.reset);
 
   const handleSignOut = async () => {
+    setSigningOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
+    await fetch("/api/auth/signout", { method: "POST" });
+    resetAuth();
     router.push("/login");
+    router.refresh();
   };
 
   return (
@@ -91,15 +100,39 @@ export function Sidebar() {
       {/* Bottom section */}
       <div className="border-t border-gray-200 p-3 dark:border-gray-700">
         <button
-          onClick={handleSignOut}
+          onClick={() => setConfirmOpen(true)}
+          disabled={signingOut}
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400",
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400",
             collapsed && "justify-center px-2"
           )}
           title={collapsed ? "Sign Out" : undefined}
         >
-          <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
+          {signingOut ? (
+            <svg
+              className="h-5 w-5 shrink-0 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          ) : (
+            <LogOut className="h-5 w-5 shrink-0" />
+          )}
+          {!collapsed && <span>{signingOut ? "Signing out..." : "Sign Out"}</span>}
         </button>
 
         <button
@@ -113,6 +146,20 @@ export function Sidebar() {
           )}
         </button>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Sign out?"
+        description="You'll need to sign in again to access your account."
+        confirmLabel="Sign Out"
+        confirmVariant="destructive"
+        isConfirming={signingOut}
+        onConfirm={async () => {
+          await handleSignOut();
+          setConfirmOpen(false);
+        }}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </aside>
   );
 }
