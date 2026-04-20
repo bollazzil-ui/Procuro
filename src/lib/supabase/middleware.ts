@@ -17,9 +17,12 @@ export async function updateSession(request: NextRequest) {
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const sessionOptions = { ...(options ?? {}) };
+            delete sessionOptions.maxAge;
+            delete sessionOptions.expires;
+            supabaseResponse.cookies.set(name, value, sessionOptions);
+          });
         },
       },
     }
@@ -50,13 +53,6 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/signup") ||
       request.nextUrl.pathname.startsWith("/forgot-password"))
   ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect root to dashboard for authenticated users
-  if (user && request.nextUrl.pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
