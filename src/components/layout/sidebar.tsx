@@ -37,14 +37,22 @@ export function Sidebar() {
   const resetAuth = useAuthStore((s) => s.reset);
 
   const handleSignOut = async () => {
-    setSigningOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    await fetch("/api/auth/signout", { method: "POST" });
-    resetAuth();
-    router.push("/login");
-    router.refresh();
-  };
+  setSigningOut(true);
+  try {
+        const supabase = createClient();
+        // Clear server-side cookies first (most important for middleware)
+        await fetch("/api/auth/signout", { method: "POST" });
+        // Then clear any remaining client-side session
+        await supabase.auth.signOut({ scope: "local" });
+      } catch (err) {
+        console.error("Sign out error:", err);
+      } finally {
+        resetAuth();
+        // Hard navigation to home — forces middleware to re-run
+        // with cleared cookies and discards any stale client state.
+        window.location.href = "/";
+      }
+    };
 
   return (
     <aside
