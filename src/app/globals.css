@@ -67,7 +67,6 @@
 }
 
 .animate-logo-spin {
-  animation: logo-spin 2.8s cubic-bezier(0.55, 0.1, 0.25, 1) infinite;
+  animation: logo-spin 7s cubic-bezier(0.55, 0.1, 0.25, 1) infinite;
   transform-style: preserve-3d;
-  backface-visibility: hidden;
 }
