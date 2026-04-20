@@ -17,13 +17,25 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-gray-200/50 bg-white/80 backdrop-blur-lg dark:border-gray-800/50 dark:bg-gray-950/80">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md">
-              <Package className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Procuro
-            </span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md [perspective:600px]">
+            <svg
+              viewBox="0 0 60 60"
+              className="h-5 w-5 animate-logo-spin"
+              aria-hidden="true"
+            >
+              <path
+                d="M14 6 h18 a16 16 0 0 1 0 32 H22 v16 a4 4 0 0 1 -8 0 Z
+                   M22 14 v16 h10 a8 8 0 0 0 0 -16 Z"
+                fill="white"
+                fillRule="evenodd"
+              />
+              <circle cx="40" cy="50" r="3.2" fill="white" />
+            </svg>
           </div>
+          <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Procuro
+          </span>
+        </div>
           <div className="flex items-center gap-4">
             <Link
               href="/login"
