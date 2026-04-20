@@ -29,7 +29,6 @@ export default function LandingPage() {
                 fill="white"
                 fillRule="evenodd"
               />
-              <circle cx="40" cy="50" r="3.2" fill="white" />
             </svg>
           </div>
           <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">

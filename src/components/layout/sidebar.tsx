@@ -70,7 +70,6 @@ export function Sidebar() {
                 fill="white"
                 fillRule="evenodd"
               />
-              <circle cx="40" cy="50" r="3.2" fill="white" />
             </svg>
           </div>
           {!collapsed && (
