@@ -12,7 +12,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -61,17 +60,25 @@ export function Sidebar() {
         collapsed ? "w-[72px]" : "w-64"
       )}
     >
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-gray-200 px-4 dark:border-gray-700">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md">
-          <Package className="h-5 w-5 text-white" />
+        {/* Logo */}
+        <div className="flex h-16 items-center gap-3 border-b border-gray-200 px-4 dark:border-gray-700">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md">
+            <svg viewBox="0 0 60 60" className="h-5 w-5" aria-hidden="true">
+              <path
+                d="M14 6 h18 a16 16 0 0 1 0 32 H22 v16 a4 4 0 0 1 -8 0 Z
+                   M22 14 v16 h10 a8 8 0 0 0 0 -16 Z"
+                fill="white"
+                fillRule="evenodd"
+              />
+              <circle cx="40" cy="50" r="3.2" fill="white" />
+            </svg>
+          </div>
+          {!collapsed && (
+            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Procuro
+            </span>
+          )}
         </div>
-        {!collapsed && (
-          <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Procuro
-          </span>
-        )}
-      </div>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
