@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NavbarActions } from "@/components/layout/NavbarActions";
 import {
   Package,
   Bot,
@@ -36,18 +37,7 @@ export default function LandingPage() {
           </span>
         </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-            >
-              Get Started
-            </Link>
+            <NavbarActions />
           </div>
         </div>
       </nav>
