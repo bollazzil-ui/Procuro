@@ -202,7 +202,7 @@ export default function ProcurementsPage() {
             }
           />
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-1">
             {filtered.map((procurement) => (
               <Link
                 key={procurement.id}
